@@ -1,16 +1,14 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
-/*
- * Start the project with some basics and pseudo code.
-There are a few identifiable objects:
-1. Robot with properties like position (x, y), direction
-2. Grid on Mars is a rectangular (0, 0) / (X, Y) where notrh is Y+1 and east is X+1 
-3. Commands to move the robot like "move forward", "turn left", "turn right", etc.
-4. Input instructions will be a string of  F-forward, L-Left, R-Right.  E.g. "FFRFLF"
-5. A robot is LOST when it moves out of the grid. (This must be stored to prevent other Robots to fall of the grid there.
-6. Other validations: Max grid size is 50x50, and instructions not exceeding 100 characters.
-7. The requirement to add other movements in the future hints at implimenting delegates maybe.
-But let's keep it simple for now.
+﻿/*
+ *In order to move the robot L, R, F; one must know in which direction the move will be given the start direction.
+So if you're moving East and you turn Left, you will be facing North.
+If you turn Right, you will be facing South.
+etc.
+
+So for left turns the robot will move North, West, South, East in that order.
+for right turns it will move East, South, West, North in that order.
+It's clear one needs and array or list to store the directions and their indexes.
+Then right turns will increment the index and left turns will decrement it.
+The move methods needs parameters. current location and direction, and the command
 --------
 sample input:
 // 5 3
@@ -30,7 +28,7 @@ public class Robot
     public int X { get; set; }
     public int Y { get; set; }
     public char Direction { get; set; } // N, E, S, W
-    public Robot(int x, int y, char direction)
+    public Robot(int x, int y, char direction = 'N')
     {
         X = x;
         Y = y;
@@ -38,8 +36,10 @@ public class Robot
     }
     // The Robot class should have methods to move and turn
     //it will process the string of commands like LLRLFFLR
-    //Maybe TurnLeft and TurnRoght can be one Turn method with a parameter (L, R)
+    //Maybe TurnLeft and TurnRight can be one Turn method with a parameter (L, R)
     //Forward movement is current direction + 1 in the grid
+    // Pass the Robot object to the Move method with the command char.
+
     public void Move(string commands)
     {
         foreach (var command in commands)
@@ -47,29 +47,95 @@ public class Robot
             switch (command)
             {
                 case 'F':
-                    MoveForward();
+                    MoveForward(this);
                     break;
                 case 'L':
-                    TurnLeft();
+                    TurnLeft(this);
                     break;
                 case 'R':
-                    TurnRight();
+                    TurnRight(this);
                     break;
             }
         }
     }
-    private void MoveForward()
+    private (int newX, int newY) MoveForward(Robot robot)
     {
         // Logic to move forward based on current direction
+        int currentX = robot.X;
+        int currentY = robot.Y;
+        string heading = robot.Direction.ToString().ToUpper();
+        return heading switch
+
+        {
+            "N" => (currentX, currentY + 1),
+
+            "S" => (currentX, currentY - 1),
+
+            "E" => (currentX + 1, currentY),
+
+            "W" => (currentX - 1, currentY),
+
+            _ => throw new ArgumentException($"Invalid direction: {heading}")
+
+        };
     }
-    private void TurnLeft()
+    private void TurnLeft(Robot robot)
     {
-        // Logic to turn left
+        string[] Headings = { "N", "E", "S", "W" };
+        var currentHeading = robot.Direction.ToString().ToUpper();
+        int currentIndex = Array.IndexOf(Headings, currentHeading);
+        // Calculate new index for left turn
+        //This increments or decrements the index based on the current heading
+        //When the index is 0, it wraps around to the end of the array and vice versa
+        int newIndex = (currentIndex - 1 + Headings.Length) % Headings.Length;
     }
-    private void TurnRight()
+    private void TurnRight(Robot robot)
     {
         // Logic to turn right
+        string[] Headings = { "N", "E", "S", "W" };
+        var currentHeading = robot.Direction.ToString().ToUpper();
+        int currentIndex = Array.IndexOf(Headings, currentHeading);
+        // Calculate new index for right turn
+        //This increments or decrements the index based on the current heading
+        int newIndex = (currentIndex + 1) % Headings.Length;
+        robot.Direction = Headings[newIndex][0]; // Update the direction
     }
+
+    //Validations for valid moves.
+    //New position must be within the grid boundaries
+    //If not, the position must be stored to a LostList or similar structure
+    //You can add a method to check if the new position is valid
+    public bool IsValidMove(int newX, int newY, Grid grid)
+    {
+        bool valid = false;
+        // Check if the new position is within the grid boundaries
+        // upper right corner is (grid.Width, grid.Height)
+        // so x must be between 1 and grid.Width  (Not -1 because of 0 based index)
+        // and y must be between 1 and grid.Height (Not -1 because of 0 based index)
+        valid = newX >= 0 && newX <= grid.Width && newY >= 0 && newY <= grid.Height;
+        if (!valid)
+        {
+            // If not valid, you can log or store the lost position
+            // persist a LostList somewhere
+            grid.LostPositions.Add(new Coordinate(newX, newY));
+
+            Console.WriteLine($"Lost position: {newX} {newY}");
+        }
+        return valid;
+
+    }
+
+    public struct Coordinate
+    {
+        public int X;
+        public int Y;
+        public Coordinate(int x, int y)
+        {
+            X = x;
+            Y = y;
+        }
+    }
+
 
     //2. Grid class to define the boundaries
     public class Grid
@@ -77,7 +143,8 @@ public class Robot
         public int Width { get; set; } // 0 based index
         public int Height { get; set; } // 0 based index
         //a structure to store lost positions
-        
+      public List<Coordinate> LostPositions { get; set; } = new List<Coordinate>();
+
 
         public Grid(int width, int height)
         {
