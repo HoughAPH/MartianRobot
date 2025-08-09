@@ -1,183 +1,223 @@
 ﻿/*
- *In order to move the robot L, R, F; one must know in which direction the move will be given the start direction.
-So if you're moving East and you turn Left, you will be facing North.
-If you turn Right, you will be facing South.
-etc.
-
-So for left turns the robot will move North, West, South, East in that order.
-for right turns it will move East, South, West, North in that order.
-It's clear one needs and array or list to store the directions and their indexes.
-Then right turns will increment the index and left turns will decrement it.
-The move methods needs parameters. current location and direction, and the command
---------
-sample input:
-// 5 3
-// 1 1 E
-// RFRFRFRF
-
-// 3 2 N
-// FRRFLLFFRRFLL
-// 0 3 W
-// LLFFFLFLFL
-
+ * Further development of the classes and movement logic for a robot simulation.
+ * I decided to implement a delegate for robot commands, instead of an interface.  
+* And interface would be rather simple and done before lots of times.  
+* 
+ * Sample input:
+ * // 5 3
+ * // 1 1 E
+ * // RFRFRFRF
+ * // 3 2 N
+ * // FRRFLLFFRRFLL
+ * // 0 3 W
+ * // LLFFFLFLFL
  */
 
-//1. Robot class with properties
+public class Program
+{
+    public delegate void RobotCommand(Robot robot, string parameter);
+    private static readonly string[] sourceArray = { "N", "E", "S", "W" };
+
+    public static void Main(string[] args)
+    {
+        // Read grid size
+        Console.WriteLine("Enter the upper-right coordinates of the grid (e.g., 5 5):");
+        var gridInput = Console.ReadLine()?.Split(' ');
+
+        if (gridInput == null || gridInput.Length != 2 ||
+            !int.TryParse(gridInput[0], out int gridWidth) ||
+            !int.TryParse(gridInput[1], out int gridHeight) ||
+            gridWidth > 50 || gridHeight > 50)
+        {
+            Console.WriteLine("Invalid grid size. Maximum coordinate value is 50.");
+            return;
+        }
+
+        Grid.Width = gridWidth;
+        Grid.Height = gridHeight;
+
+        Console.WriteLine($"Grid size set to: {Grid.Width} x {Grid.Height}");
+
+        // Process robots
+        while (true)
+        {
+            Console.WriteLine("\nEnter the robot's initial position and heading (e.g., 3 4 E), or type 'exit' to quit:");
+            var robotInput = Console.ReadLine();
+
+            if (robotInput?.ToLower() == "exit") break;
+
+            var robotData = robotInput?.Split(' ');
+            if (robotData == null || robotData.Length != 3 ||
+                !int.TryParse(robotData[0], out int startX) ||
+                !int.TryParse(robotData[1], out int startY) ||
+                !sourceArray.Contains(robotData[2].ToUpper()))
+            {
+                Console.WriteLine("Invalid robot data. Please try again.");
+                continue;
+            }
+            var robot = new Robot(startX, startY, robotData[2].ToUpper());
+            Console.WriteLine("Enter the movement instructions (e.g., FFLRFF):");
+            var instructions = Console.ReadLine();
+            if (instructions == null || instructions.Length > 100)
+            {
+                Console.WriteLine("Invalid instructions. Maximum length is 100 characters.");
+                continue;
+            }
+            robot.ExecuteInstructions(instructions);
+            Console.WriteLine($"Robot final state: {robot}");
+        }
+    }
+}
+
+public static class Grid
+{
+    public static int Width { get; set; } = 50;
+    public static int Height { get; set; } = 50;
+    public static HashSet<(int X, int Y)> LostPositions { get; } = new HashSet<(int, int)>();
+
+    public static bool IsWithinBounds(int x, int y)
+    {
+        return x >= 0 && x <= Width && y >= 0 && y <= Height;
+    }
+
+    public static bool IsLostPosition(int x, int y)
+    {
+        return LostPositions.Contains((x, y));
+    }
+
+    public static void AddLostPosition(int x, int y)
+    {
+        LostPositions.Add((x, y));
+    }
+
+    public static void Reset()
+    {
+        LostPositions.Clear();
+    }
+}
+
+public static class MoveRobot
+{
+    private static readonly string[] Headings = { "N", "E", "S", "W" };
+
+    public static void Forward(Robot robot, string parameter)
+    {
+        var (newX, newY) = CalculateNewPosition(robot.X, robot.Y, robot.Heading);
+
+        var (canMove, robotLost) = ValidateMove(robot.X, robot.Y, newX, newY);
+
+        if (robotLost)
+        {
+            robot.IsLost = true;
+        }
+        else if (canMove)
+        {
+            robot.X = newX;
+            robot.Y = newY;
+        }
+    }
+
+    public static void Turn(Robot robot, string parameter)
+    {
+        if (parameter.Length != 1 || (parameter[0] != 'L' && parameter[0] != 'R'))
+        {
+            throw new ArgumentException("Invalid parameter for Turn. Must be 'L' or 'R'.");
+        }
+
+        robot.Heading = ChangeHeading(robot.Heading, parameter[0]);
+    }
+
+    private static string ChangeHeading(string currentHeading, char rotation)
+    {
+        int currentIndex = Array.IndexOf(Headings, currentHeading);
+        if (currentIndex == -1)
+        {
+            throw new ArgumentException("Invalid heading");
+        }
+
+        int rotateIndex = rotation == 'L' ? -1 : 1;
+        int newIndex = (currentIndex + rotateIndex + Headings.Length) % Headings.Length;
+        return Headings[newIndex];
+    }
+
+    private static (int newX, int newY) CalculateNewPosition(int currentX, int currentY, string heading)
+    {
+        return heading switch
+        {
+            "N" => (currentX, currentY + 1),
+            "S" => (currentX, currentY - 1),
+            "E" => (currentX + 1, currentY),
+            "W" => (currentX - 1, currentY),
+            _ => throw new ArgumentException($"Invalid direction: {heading}")
+        };
+    }
+
+    private static (bool canMove, bool robotLost) ValidateMove(int currentX, int currentY, int newX, int newY)
+    {
+        if (!Grid.IsWithinBounds(newX, newY))
+        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}
+
 public class Robot
 {
     public int X { get; set; }
     public int Y { get; set; }
-    public char Direction { get; set; } // N, E, S, W
-    public Robot(int x, int y, char direction = 'N')
-    {
-        X = x;
-        Y = y;
-        Direction = direction;
-    }
-    // The Robot class should have methods to move and turn
-    //it will process the string of commands like LLRLFFLR
-    //Maybe TurnLeft and TurnRight can be one Turn method with a parameter (L, R)
-    //Forward movement is current direction + 1 in the grid
-    // Pass the Robot object to the Move method with the command char.
+    public string Heading { get; set; }
+    public bool IsLost { get; set; }
 
-    public void Move(string commands)
+    public Robot(int startX, int startY, string initialHeading = "N")
     {
-        foreach (var command in commands)
+        if (!Grid.IsWithinBounds(startX, startY))
         {
-            switch (command)
+            throw new ArgumentException("Starting position is outside grid boundaries");
+        }
+
+        X = startX;
+        Y = startY;
+        Heading = initialHeading;
+        IsLost = false;
+    }
+
+    public void ExecuteInstructions(string instructions)
+    {
+        if (instructions.Length > 100)
+        {
+            throw new ArgumentException("Instruction string exceeds the maximum length of 100 characters.");
+        }
+
+        foreach (char command in instructions.ToUpper())
+        {
+            if (IsLost) break;
+
+            Program.RobotCommand commandDelegate = command switch
             {
-                case 'F':
-                    MoveForward(this);
-                    break;
-                case 'L':
-                    TurnLeft(this);
-                    break;
-                case 'R':
-                    TurnRight(this);
-                    break;
-            }
-        }
-    }
-    private (int newX, int newY) MoveForward(Robot robot)
-    {
-        // Logic to move forward based on current direction
-        int currentX = robot.X;
-        int currentY = robot.Y;
-        string heading = robot.Direction.ToString().ToUpper();
-        return heading switch
+                'F' => MoveRobot.Forward,
+                'L' => (robot, _) => MoveRobot.Turn(robot, "L"),
+                'R' => (robot, _) => MoveRobot.Turn(robot, "R"),
+                _ => throw new ArgumentException($"Invalid command: {command}. Only L, R and F are allowed.")
+            };
 
-        {
-            "N" => (currentX, currentY + 1),
-
-            "S" => (currentX, currentY - 1),
-
-            "E" => (currentX + 1, currentY),
-
-            "W" => (currentX - 1, currentY),
-
-            _ => throw new ArgumentException($"Invalid direction: {heading}")
-
-        };
-    }
-    private void TurnLeft(Robot robot)
-    {
-        string[] Headings = { "N", "E", "S", "W" };
-        var currentHeading = robot.Direction.ToString().ToUpper();
-        int currentIndex = Array.IndexOf(Headings, currentHeading);
-        // Calculate new index for left turn
-        //This increments or decrements the index based on the current heading
-        //When the index is 0, it wraps around to the end of the array and vice versa
-        int newIndex = (currentIndex - 1 + Headings.Length) % Headings.Length;
-    }
-    private void TurnRight(Robot robot)
-    {
-        // Logic to turn right
-        string[] Headings = { "N", "E", "S", "W" };
-        var currentHeading = robot.Direction.ToString().ToUpper();
-        int currentIndex = Array.IndexOf(Headings, currentHeading);
-        // Calculate new index for right turn
-        //This increments or decrements the index based on the current heading
-        int newIndex = (currentIndex + 1) % Headings.Length;
-        robot.Direction = Headings[newIndex][0]; // Update the direction
-    }
-
-    //Validations for valid moves.
-    //New position must be within the grid boundaries
-    //If not, the position must be stored to a LostList or similar structure
-    //You can add a method to check if the new position is valid
-    public bool IsValidMove(int newX, int newY, Grid grid)
-    {
-        bool valid = false;
-        // Check if the new position is within the grid boundaries
-        // upper right corner is (grid.Width, grid.Height)
-        // so x must be between 1 and grid.Width  (Not -1 because of 0 based index)
-        // and y must be between 1 and grid.Height (Not -1 because of 0 based index)
-        valid = newX >= 0 && newX <= grid.Width && newY >= 0 && newY <= grid.Height;
-        if (!valid)
-        {
-            // If not valid, you can log or store the lost position
-            // persist a LostList somewhere
-            grid.LostPositions.Add(new Coordinate(newX, newY));
-
-            Console.WriteLine($"Lost position: {newX} {newY}");
-        }
-        return valid;
-
-    }
-
-    public struct Coordinate
-    {
-        public int X;
-        public int Y;
-        public Coordinate(int x, int y)
-        {
-            X = x;
-            Y = y;
+            commandDelegate(this, command.ToString());
         }
     }
 
-
-    //2. Grid class to define the boundaries
-    public class Grid
+    public override string ToString()
     {
-        public int Width { get; set; } // 0 based index
-        public int Height { get; set; } // 0 based index
-        //a structure to store lost positions
-      public List<Coordinate> LostPositions { get; set; } = new List<Coordinate>();
-
-
-        public Grid(int width, int height)
-        {
-            Width = width;
-            Height = height;
-        }
-        //validations for valid moves.
-        //New position must be within the grid boundaries
-        //If not, the position must be stored to a LostList or similar structure
-    }
-
-    //There should be a main method to run the program that accepts inputs 
-    //Or
-    //hardcode some movements to test the logic against expected outputs.
-
-    public static void Main(string[] args)
-    {
-        // Example inputs
-        Grid marsGrid = new Grid(5, 3);
-        //new robot with inistial position and direction
-        Robot robot1 = new Robot(1, 1, 'E');
-        // Move the robot with a string of commands
-        robot1.Move("RFRFRFRF");
-        
-        Robot robot2 = new Robot(3, 2, 'N');
-        robot2.Move("FRRFLLFFRRFLL");
-        
-        Robot robot3 = new Robot(0, 3, 'W');
-        robot3.Move("LLFFFLFLFL");
-        //Process the robots' movements and validate them.
-        // Output the final positions of the robots
-        Console.WriteLine($"Robot 1 Position: {robot1.X} {robot1.Y} {robot1.Direction}");
-        Console.WriteLine($"Robot 2 Position: {robot2.X} {robot2.Y} {robot2.Direction}");
-        Console.WriteLine($"Robot 3 Position: {robot3.X} {robot3.Y} {robot3.Direction}");
+        string status = IsLost ? " LOST" : "";
+        return $"Robot at ({X}, {Y}) facing {Heading}{status}";
     }
 }
