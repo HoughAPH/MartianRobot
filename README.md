@@ -1,26 +1,69 @@
 # MartianRobot
-1. Robot with properties like position (x, y), direction
-2. Grid on Mars is a rectangular (0, 0) / (X, Y) where notrh is Y+1 and east is X+1 
-3. Commands to move the robot like "move forward", "turn left", "turn right", etc.
-4. Input instructions will be a string of  F-forward, L-Left, R-Right.  E.g. "FFRFLF"
-5. A robot is LOST when it moves out of the grid. (This must be stored to prevent other Robots to fall of the grid there.
-6. Other validations: Max grid size is 50x50, and instructions not exceeding 100 characters.
-7. The requirement to add other movements in the future hints at implimenting delegates maybe.
-8. Keep it simple
 
+A simple, extensible console application moving robots on a Martian grid. (stricly Euclidean)
 
-sample input:
- 5 3
- 1 1 E
- RFRFRFRF
+## Overview
 
- 3 2 N
- FRRFLLFFRRFLL
+MartianRobot allows you to control one or more robots on a rectangular grid representing the surface of Mars. 
+Robots can move forward, turn left, or turn right based on a sequence of commands. 
+If a robot moves off the grid, it is marked as LOST, and its last position is recorded to prevent future robots from falling off at the same spot.
 
- 0 3 W
- LLFFFLFLFL.
+## Features
 
- Sample Output:
- 1 1 E
- 3 3 N LOST
- 2 3 S
+- Define grid size (maximum 50x50).
+- Add robots with initial position and heading (N, E, S, W).
+- Input movement instructions as a string (e.g., `FFRFLF`).
+- Robots execute commands: Forward (`F`), Left (`L`), Right (`R`).
+- Robots are marked LOST if they move out of bounds; lost positions are tracked.
+- Validates input: grid size and instruction length.
+- Designed for easy extension (e.g., adding new movement commands).
+
+## Sample Usage
+
+**Input:**
+```
+5 3
+1 1 E
+RFRFRFRF
+
+3 2 N
+FRRFLLFFRRFLL
+
+0 3 W
+LLFFFLFLFL
+```
+
+**Output:**
+```
+1 1 E
+3 3 N LOST
+2 3 S
+```
+
+## Extensibility
+
+The app uses delegates and a movement service to process robot commands. To add a new movement (e.g., Backward), simply:
+
+1. Implement a new method in the movement service (e.g., `Backward(Robot robot)`).
+2. Update the command switch in the robot class to handle the new command (e.g., `'B' => movementService.Backward`).
+3. No major refactoring required.
+
+This design makes it easy to extend the robot’s capabilities.
+
+## Project Structure
+
+- **Models**: Data structures for robots and grid.
+- **Services**: Movement logic and command processing.
+- **Common**: Shared delegates and types.
+- **Program.cs**: Entry point and user interaction.
+
+## Prerequisites for running the App
+
+1. Make sure you have .NET 9.0 SDK installed on your machine.
+2. Build and run the app:
+3. To input your own commands, you can modify the `Program.cs` file and uncomment the section below the default inputs.
+
+## Not included
+- Unit tests for the application logic.
+- Robots can't move siumultaneously and the biggest grid size is 50x50. (as requested)
+- No example of adding a new movement like Backwords.  
