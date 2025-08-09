@@ -67,4 +67,4 @@ This design makes it easy to extend the robot’s capabilities.
 ## Not included
 - Unit tests for the application logic.
 - Robots can't move siumultaneously and the biggest grid size is 50x50. (as requested)
-- No example of adding a new movement like Backwords.  
+- No example of adding a new movement like Backwards.  
