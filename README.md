@@ -48,7 +48,7 @@ The app uses delegates and a movement service to process robot commands. To add 
 2. Update the command switch in the robot class to handle the new command (e.g., `'B' => movementService.Backward`).
 3. No major refactoring required.
 
-This design makes it easy to extend the robot’s capabilities.
+This design makes it easy to extend the robotâ€™s capabilities.
 
 ## Project Structure
 
@@ -62,6 +62,7 @@ This design makes it easy to extend the robot’s capabilities.
 1. Make sure you have .NET 9.0 SDK installed on your machine.
 2. Build and run the app:
 3. To input your own commands, you can modify the `Program.cs` file and uncomment the section below the default inputs.
+4. Please run the application in "Release" mode. Runnning in Debug mode will write the result of every step to the console.
 
 ## Not included
 - Unit tests for the application logic.
