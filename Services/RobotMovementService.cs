@@ -45,8 +45,9 @@ public class RobotMovementService
 
         string oldHeading = robot.Heading;
         robot.Heading = ChangeHeading(robot.Heading, turning[0]);
-        string direction = turning[0] == 'L' ? "Left" : "Right";
+
 #if DEBUG
+        string direction = turning[0] == 'L' ? "Left" : "Right";
         Console.WriteLine($"  Turn {direction}: Robot turned from {oldHeading} to {robot.Heading}");
 #endif
     }
@@ -76,22 +77,5 @@ public class RobotMovementService
         };
     }
 
-    private (bool canMove, bool robotLost) ValidateMove(int currentX, int currentY, int newX, int newY)
-    {
-        if (!Grid.IsWithinBounds(newX, newY))
-        {
-            if (!Grid.IsLostPosition(currentX, currentY))
-            {
-                Grid.AddLostPosition(currentX, currentY);
-            }
-            return (false, true);
-        }
-
-        if (Grid.IsLostPosition(newX, newY))
-        {
-            return (false, false);
-        }
-
-        return (true, false);
-    }
+    
 }

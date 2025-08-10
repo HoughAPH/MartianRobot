@@ -1,3 +1,4 @@
+using MartianRobot.Common;
 using MartianRobot.Services;
 
 namespace MartianRobot.Models;
@@ -22,7 +23,7 @@ public class Robot
         IsLost = false;
     }
 
-    public delegate void RobotCommand(Robot robot);
+    //public delegate void RobotCommand(Robot robot);
 
     public void ExecuteInstructions(string instructions)
     {
