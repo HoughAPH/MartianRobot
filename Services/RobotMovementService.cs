@@ -78,4 +78,260 @@ public class RobotMovementService
     }
 
     
+}        if (!Grid.IsWithinBounds(newX, newY))
+        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
+}        {
+            if (!Grid.IsLostPosition(currentX, currentY))
+            {
+                Grid.AddLostPosition(currentX, currentY);
+            }
+            return (false, true);
+        }
+
+        if (Grid.IsLostPosition(newX, newY))
+        {
+            return (false, false);
+        }
+
+        return (true, false);
+    }
 }
