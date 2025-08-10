@@ -75,23 +75,5 @@ public class RobotMovementService
             _ => throw new ArgumentException($"Invalid direction: {heading}")
         };
     }
-
-    private (bool canMove, bool robotLost) ValidateMove(int currentX, int currentY, int newX, int newY)
-    {
-        if (!Grid.IsWithinBounds(newX, newY))
-        {
-            if (!Grid.IsLostPosition(currentX, currentY))
-            {
-                Grid.AddLostPosition(currentX, currentY);
-            }
-            return (false, true);
-        }
-
-        if (Grid.IsLostPosition(newX, newY))
-        {
-            return (false, false);
-        }
-
-        return (true, false);
-    }
+  
 }
