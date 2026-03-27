@@ -1,0 +1,63 @@
+﻿Release Notes
+
+Overview
+This update refactors the `MartianRobot` solution to improve separation of concerns, strengthen the domain model, and make instruction handling easier to extend.
+
+Highlights
+
+Refined application structure
+- Simplified `Program.cs` into a small assessment-style runner.
+- Kept execution focused on valid sample scenarios.
+- Removed the earlier responsibility for instruction execution from `Robot`.
+
+Improved domain model
+- Replaced string-based headings with a strongly typed `Heading` enum.
+- Introduced a dedicated `Position` model for robot coordinates.
+- Reduced primitive state on `Robot` to a clearer domain representation:
+  - `Position`
+  - `Heading`
+  - `IsLost`
+
+Moved orchestration out of the entity
+- Added `RobotInstructionExecutor` to handle:
+  - instruction validation
+  - command dispatch
+  - execution flow
+  - stopping execution when a robot becomes lost
+
+This keeps `Robot` focused on state rather than behavior orchestration.
+
+Replaced switch-based command execution
+- Introduced extensible command objects through `IRobotInstructionCommand`.
+- Added concrete command implementations:
+  - `MoveForwardCommand`
+  - `TurnLeftCommand`
+  - `TurnRightCommand`
+
+Commands are now registered in the executor, making instruction handling easier to extend without changing core execution flow.
+
+Simplified movement logic
+- Refactored `RobotMovementService` to expose explicit operations:
+  - `MoveForward(Robot)`
+  - `TurnLeft(Robot)`
+  - `TurnRight(Robot)`
+
+This replaces the earlier generic string-driven movement methods with clearer intent-based operations.
+
+Benefits
+- Better separation of concerns
+- Stronger typing and fewer invalid states
+- Cleaner, more maintainable code
+- Easier future extension for additional instruction types
+- Improved alignment with senior-level design expectations
+
+Extensibility
+New move types can now be added by:
+1. Creating a new command class implementing `IRobotInstructionCommand`
+2. Registering it with `RobotInstructionExecutor`
+
+This avoids expanding central switch logic and keeps new behavior isolated.
+
+Known follow-up improvement
+- `Grid` remains static and mutable.
+- A future enhancement would be to make grid state instance-based to improve isolation and reduce shared state concerns

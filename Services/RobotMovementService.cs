@@ -4,77 +4,67 @@ namespace MartianRobot.Services;
 
 public class RobotMovementService
 {
-    public void Forward(Robot robot)
+    public void MoveForward(Robot robot)
     {
-        var (newX, newY) = CalculateNewPosition(robot.X, robot.Y, robot.Heading);
+        ArgumentNullException.ThrowIfNull(robot);
 
-        // If the new position is outside the grid
+        var (newX, newY) = CalculateForwardPosition(
+            robot.Position.X,
+            robot.Position.Y,
+            robot.Heading);
+
         if (!Grid.IsWithinBounds(newX, newY))
         {
-            // If the current position is already "scented" (lost), ignore the move
-            if (Grid.IsLostPosition(robot.X, robot.Y))
+            if (Grid.IsLostPosition(robot.Position.X, robot.Position.Y))
             {
-#if DEBUG
-            Console.WriteLine($"  Move Forward: Ignored at scented position ({robot.X}, {robot.Y}) facing {robot.Heading}");
-#endif
                 return;
             }
-            // Otherwise, mark robot as LOST and scent the current position
+
             robot.IsLost = true;
-            Grid.AddLostPosition(robot.X, robot.Y);
-#if DEBUG
-        Console.WriteLine($"  Move Forward: Robot LOST at ({robot.X}, {robot.Y}) facing {robot.Heading}");
-#endif
+            Grid.AddLostPosition(robot.Position.X, robot.Position.Y);
             return;
         }
 
-        // If the move is valid, update the robot's position
-        robot.X = newX;
-        robot.Y = newY;
-#if DEBUG
-    Console.WriteLine($"  Move Forward: Robot moved to ({robot.X}, {robot.Y}) facing {robot.Heading}");
-#endif
+        robot.Position = new Position(newX, newY);
     }
 
-    public void Turn(Robot robot, string turning)
+    public void TurnLeft(Robot robot)
     {
-        if (turning.Length != 1 || turning[0] != 'L' && turning[0] != 'R')
+        ArgumentNullException.ThrowIfNull(robot);
+
+        robot.Heading = robot.Heading switch
         {
-            throw new ArgumentException("Invalid parameter for Turn. Must be 'L' or 'R'.");
-        }
-
-        string oldHeading = robot.Heading;
-        robot.Heading = ChangeHeading(robot.Heading, turning[0]);
-
-#if DEBUG
-        string direction = turning[0] == 'L' ? "Left" : "Right";
-        Console.WriteLine($"  Turn {direction}: Robot turned from {oldHeading} to {robot.Heading}");
-#endif
+            Heading.North => Heading.West,
+            Heading.West => Heading.South,
+            Heading.South => Heading.East,
+            Heading.East => Heading.North,
+            _ => throw new ArgumentOutOfRangeException(nameof(robot.Heading))
+        };
     }
 
-    private string ChangeHeading(string currentHeading, char turning)
+    public void TurnRight(Robot robot)
     {
-        int currentIndex = Array.IndexOf(Grid.HeadingsIndex, currentHeading);
-        if (currentIndex == -1)
-        {
-            throw new ArgumentException("Invalid heading");
-        }
+        ArgumentNullException.ThrowIfNull(robot);
 
-        int rotateIndex = turning == 'L' ? -1 : 1;
-        int newIndex = (currentIndex + rotateIndex + Grid.HeadingsIndex.Length) % Grid.HeadingsIndex.Length;
-        return Grid.HeadingsIndex[newIndex];
+        robot.Heading = robot.Heading switch
+        {
+            Heading.North => Heading.East,
+            Heading.East => Heading.South,
+            Heading.South => Heading.West,
+            Heading.West => Heading.North,
+            _ => throw new ArgumentOutOfRangeException(nameof(robot.Heading))
+        };
     }
 
-    private (int newX, int newY) CalculateNewPosition(int currentX, int currentY, string heading)
+    private static (int newX, int newY) CalculateForwardPosition(int currentX, int currentY, Heading heading)
     {
         return heading switch
         {
-            "N" => (currentX, currentY + 1),
-            "S" => (currentX, currentY - 1),
-            "E" => (currentX + 1, currentY),
-            "W" => (currentX - 1, currentY),
-            _ => throw new ArgumentException($"Invalid direction: {heading}")
+            Heading.North => (currentX, currentY + 1),
+            Heading.South => (currentX, currentY - 1),
+            Heading.East => (currentX + 1, currentY),
+            Heading.West => (currentX - 1, currentY),
+            _ => throw new ArgumentOutOfRangeException(nameof(heading))
         };
     }
-    
-}    
+}
