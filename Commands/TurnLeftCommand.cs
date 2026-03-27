@@ -1,5 +1,4 @@
 using MartianRobot.Models;
-using MartianRobot.Services;
 
 namespace MartianRobot.Commands;
 
@@ -7,8 +6,17 @@ public class TurnLeftCommand : IRobotInstructionCommand
 {
     public char Symbol => 'L';
 
-    public void Execute(Robot robot, RobotMovementService movementService)
+    public void Execute(Robot robot)
     {
-        movementService.TurnLeft(robot);
+        ArgumentNullException.ThrowIfNull(robot);
+
+        robot.Heading = robot.Heading switch
+        {
+            Heading.North => Heading.West,
+            Heading.West => Heading.South,
+            Heading.South => Heading.East,
+            Heading.East => Heading.North,
+            _ => throw new ArgumentOutOfRangeException(nameof(robot.Heading))
+        };
     }
 }

@@ -1,26 +1,37 @@
 # MartianRobot
 
-A simple, extensible console application moving robots on a Martian grid. (stricly Euclidean)
+A small, extensible .NET 9 console application for moving robots on a rectangular Martian grid.d.
 
 ## Overview
 
-MartianRobot allows you to control one or more robots on a rectangular grid representing the surface of Mars. 
-Robots can move forward, turn left, or turn right based on a sequence of commands. 
-If a robot moves off the grid, it is marked as LOST, and its last position is recorded to prevent future robots from falling off at the same spot.
+`MartianRobot` simulates robots moving on a bounded grid using a sequence of commands.
 
-## Features
+Supported commands:
 
-- Define grid size (maximum 50x50).
-- Add robots with initial position and heading (N, E, S, W).
-- Input movement instructions as a string (e.g., `FFRFLF`).
-- Robots execute commands: Forward (`F`), Left (`L`), Right (`R`).
-- Robots are marked LOST if they move out of bounds; lost positions are tracked.
-- Validates input: grid size and instruction length.
-- Designed for easy extension (e.g., adding new movement commands).
+- `F` — move forward one grid point
+- `L` — turn left
+- `R` — turn right
 
-## Sample Usage
+If a robot moves off the grid, it becomes `LOST`. The last valid position is then marked as scented so a future robot can ignore the same fatal move.
 
-**Input:**
+## Rules
+
+- Grid coordinates are bounded by a maximum of `50 x 50`
+- A robot has:
+  - a `Position`
+  - a `Heading`
+  - an `IsLost` state
+- Valid headings are:
+  - `N`
+  - `E`
+  - `S`
+  - `W`
+- Instruction strings are limited to 100 characters
+- Invalid instructions throw an exception
+
+## Sample Input / Output
+
+### Input
 ```
 5 3
 1 1 E
@@ -33,7 +44,7 @@ FRRFLLFFRRFLL
 LLFFFLFLFL
 ```
 
-**Output:**
+### Output
 ```
 1 1 E
 3 3 N LOST
@@ -42,13 +53,33 @@ LLFFFLFLFL
 
 ## Extensibility
 
-The app uses delegates and a movement service to process robot commands. To add a new movement (e.g., Backward), simply:
+The app is designed to be extensible. To add new robot commands:
 
-1. Implement a new method in the movement service (e.g., `Backward(Robot robot)`).
-2. Update the command switch in the robot class to handle the new command (e.g., `'B' => movementService.Backward`).
-3. No major refactoring required.
+1. Create a new command class implementing `ICommand`.
+2. Implement the command's logic in the `Execute` method.
+3. Register the new command in the `RobotInstructionExecutor`.
 
-This design makes it easy to extend the robot’s capabilities.
+### Example: Adding a Backward Command
+
+1. Create `BackwardCommand` class.
+
+   ```csharp
+   public class BackwardCommand : ICommand
+   {
+       public void Execute(Robot robot)
+       {
+           // Implement backward movement
+       }
+   }
+   ```
+
+2. Register the command.
+
+   ```csharp
+   executor.RegisterCommand('B', new BackwardCommand());
+   ```
+
+3. Use `B` in instruction strings for backward movement.
 
 ## Project Structure
 
@@ -56,12 +87,6 @@ This design makes it easy to extend the robot’s capabilities.
 - **Services**: Movement logic and command processing.
 - **Common**: Shared delegates and types.
 - **Program.cs**: Entry point and user interaction.
-
-## Prerequisites for running the App
-
-1. Make sure you have .NET 9.0 SDK installed on your machine.
-2. Build and run the app:
-3. To input your own commands, you can modify the `Program.cs` file and uncomment the section below the default inputs.
 
 ## Not included
 - Unit tests for the application logic.

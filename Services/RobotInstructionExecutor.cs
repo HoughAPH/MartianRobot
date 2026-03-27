@@ -5,12 +5,10 @@ namespace MartianRobot.Services;
 
 public class RobotInstructionExecutor
 {
-    private readonly RobotMovementService _movementService;
     private readonly IReadOnlyDictionary<char, IRobotInstructionCommand> _commands;
 
     public RobotInstructionExecutor()
         : this(
-            new RobotMovementService(),
             [
                 new MoveForwardCommand(),
                 new TurnLeftCommand(),
@@ -19,11 +17,8 @@ public class RobotInstructionExecutor
     {
     }
 
-    public RobotInstructionExecutor(
-        RobotMovementService movementService,
-        IEnumerable<IRobotInstructionCommand> commands)
+    public RobotInstructionExecutor(IEnumerable<IRobotInstructionCommand> commands)
     {
-        _movementService = movementService ?? throw new ArgumentNullException(nameof(movementService));
         ArgumentNullException.ThrowIfNull(commands);
 
         _commands = commands.ToDictionary(command => command.Symbol);
@@ -52,7 +47,7 @@ public class RobotInstructionExecutor
                     $"Invalid command: {commandSymbol}. Only {string.Join(", ", _commands.Keys.Order())} are allowed.");
             }
 
-            command.Execute(robot, _movementService);
+            command.Execute(robot);
         }
     }
 }
