@@ -1,6 +1,6 @@
 # MartianRobot
 
-A small, extensible .NET 9 console application for moving robots on a rectangular Martian grid.d.
+A small, extensible `.NET 9` console application that simulates robots moving on a rectangular Martian grid.
 
 ## Overview
 
@@ -88,8 +88,11 @@ The app is designed to be extensible. To add new robot commands:
 - **Common**: Shared delegates and types.
 - **Program.cs**: Entry point and user interaction.
 
+# # Test
+
+The project includes unit tests for core functionality, ensuring correct robot movement, instruction execution, and edge case handling.
+
 ## Not included
-- Unit tests for the application logic.
 - Robots can't move siumultaneously and the biggest grid size is 50x50. (as requested)
 - No example of adding a new movement like Backwords.  
 

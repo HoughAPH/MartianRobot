@@ -4,7 +4,7 @@ public static class Grid
 {
     public static int Width { get; set; } = 50;
     public static int Height { get; set; } = 50;
-    public static HashSet<(int X, int Y)> LostPositions { get; } = new();
+    public static HashSet<(int X, int Y)> LostPositions { get; } = [];
 
     public static bool IsWithinBounds(int x, int y)
     {
