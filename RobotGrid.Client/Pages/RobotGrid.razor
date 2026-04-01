@@ -1,0 +1,259 @@
+﻿@page "/robotgrid"
+@using MartianRobot.Models
+@using MartianRobot.Services
+@using global::RobotGrid.Client.Services
+
+<div class="container py-4">
+    <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <h3 class="mb-0">RobotGrid</h3>
+                <small class="text-body-secondary">@Caption</small>
+            </div>
+
+            <span class="badge @(IsAnimating ? "text-bg-warning" : "text-bg-success")">
+                @(IsAnimating ? "Animating" : "Ready")
+            </span>
+        </div>
+
+        <div class="card-body">
+            <div class="d-flex gap-2 mb-3">
+                <button class="btn btn-primary" @onclick="StartAnimation" disabled="@IsAnimating">
+                    Animate All Robots
+                </button>
+            </div>
+
+            <div class="row g-3">
+                @foreach (var scenario in Scenarios)
+                {
+                    <div class="col-12 col-xl-4">
+                        <div class="card border-secondary h-100">
+                            <div class="card-header bg-dark text-light">
+                                @scenario.Title
+                            </div>
+                            <div class="card-body bg-dark text-info">
+                                <pre class="mb-0 font-monospace small">@scenario.GridText</pre>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <hr class="my-4" />
+
+            <RobotGrid.Client.Components.RobotScenarioRunner />
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter] public string Caption { get; set; } = "Martian Robot Scenarios";
+
+    private readonly RobotGridTextRenderer _renderer = new();
+
+    private List<RobotScenario> Scenarios { get; } = [];
+    private bool IsAnimating;
+
+    protected override void OnInitialized()
+    {
+        Grid.Width = 5;
+        Grid.Height = 3;
+
+        InitializeScenarios();
+        ResetScenarios();
+    }
+
+    private void InitializeScenarios()
+    {
+        Scenarios.Clear();
+
+        Scenarios.Add(new RobotScenario("Robot 1", new Robot(1, 1, Heading.East), "RFRFRFRF"));
+        Scenarios.Add(new RobotScenario("Robot 2", new Robot(3, 2, Heading.North), "FRRFLLFFRRFLL"));
+        Scenarios.Add(new RobotScenario("Robot 3", new Robot(0, 3, Heading.West), "LLFFFLFLFL"));
+    }
+
+    private async Task StartAnimation()
+    {
+        IsAnimating = true;
+
+        try
+        {
+            ResetScenarios();
+            PrecomputeFrames();
+
+            foreach (var scenario in Scenarios)
+            {
+                scenario.GridText = scenario.Frames[0].GridText;
+            }
+
+            await InvokeAsync(StateHasChanged);
+            await Task.Delay(600);
+
+            var maxFrameCount = Scenarios.Max(scenario => scenario.Frames.Count);
+
+            for (var frameIndex = 1; frameIndex < maxFrameCount; frameIndex++)
+            {
+                foreach (var scenario in Scenarios)
+                {
+                    var safeIndex = Math.Min(frameIndex, scenario.Frames.Count - 1);
+                    scenario.GridText = scenario.Frames[safeIndex].GridText;
+                }
+
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(600);
+            }
+        }
+        finally
+        {
+            IsAnimating = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void PrecomputeFrames()
+    {
+        Grid.Reset();
+
+        var executor = new RobotInstructionExecutor();
+
+        foreach (var scenario in Scenarios)
+        {
+            scenario.CurrentRobot = CloneRobot(scenario.StartRobot);
+            scenario.LostPositions.Clear();
+            scenario.VisitedPositions.Clear();
+            scenario.Frames.Clear();
+
+            TrackVisitedPosition(scenario);
+            SyncLostPositions(scenario);
+            AddFrame(scenario);
+
+            foreach (var cmd in scenario.Instructions.ToUpperInvariant())
+            {
+                if (scenario.CurrentRobot.IsLost)     
+                {
+                    break;
+                }
+
+                if (!executor.TryExecuteCommand(scenario.CurrentRobot, cmd))
+                {
+                    break;
+                }
+
+                TrackVisitedPosition(scenario);
+                SyncLostPositions(scenario);
+                AddFrame(scenario);
+            }
+        }
+    }
+
+    private void ResetScenarios()
+    {
+        Grid.Reset();
+
+        foreach (var scenario in Scenarios)
+        {
+            scenario.CurrentRobot = CloneRobot(scenario.StartRobot);
+            scenario.LostPositions.Clear();
+            scenario.VisitedPositions.Clear();
+            scenario.Frames.Clear();
+
+            TrackVisitedPosition(scenario);
+
+            scenario.GridText = BuildGridText(
+                scenario.StartRobot,
+                scenario.Instructions,
+                scenario.CurrentRobot,
+                scenario.LostPositions,
+                scenario.VisitedPositions);
+        }
+    }
+
+    private string BuildGridText(
+        Robot startRobot,
+        string instructions,
+        Robot currentRobot,
+        HashSet<(int X, int Y)> lostPositions,
+        HashSet<(int X, int Y)> visitedPositions)
+    {
+        return _renderer.BuildGridText(
+            Grid.Width,
+            Grid.Height,
+            startRobot,
+            instructions,
+            currentRobot,
+            lostPositions,
+            visitedPositions);
+    }
+
+    private void AddFrame(RobotScenario scenario)
+    {
+        scenario.Frames.Add(new RobotFrame(
+            BuildGridText(
+                scenario.StartRobot,
+                scenario.Instructions,
+                scenario.CurrentRobot,
+                scenario.LostPositions,
+                scenario.VisitedPositions)));
+    }
+
+    private static Robot CloneRobot(Robot robot)
+    {
+        return new Robot(robot.Position.X, robot.Position.Y, robot.Heading)
+        {
+            IsLost = robot.IsLost
+        };
+    }
+
+    private static void SyncLostPositions(RobotScenario scenario)
+    {
+        scenario.LostPositions.Clear();
+
+        foreach (var lostPosition in Grid.LostPositions)
+        {
+            scenario.LostPositions.Add(lostPosition);
+        }
+    }
+
+    private static void TrackVisitedPosition(RobotScenario scenario)
+    {
+        var x = scenario.CurrentRobot.Position.X;
+        var y = scenario.CurrentRobot.Position.Y;
+
+        if (x < 0 || x > Grid.Width || y < 0 || y > Grid.Height)
+        {
+            return;
+        }
+
+        scenario.VisitedPositions.Add((x, y));
+    }
+
+    private sealed class RobotScenario
+    {
+        public RobotScenario(string title, Robot startRobot, string instructions)
+        {
+            Title = title;
+            StartRobot = startRobot;
+            Instructions = instructions;
+            CurrentRobot = startRobot;
+        }
+
+        public string Title { get; }
+        public Robot StartRobot { get; }
+        public string Instructions { get; }
+        public Robot CurrentRobot { get; set; }
+        public HashSet<(int X, int Y)> LostPositions { get; } = [];
+        public HashSet<(int X, int Y)> VisitedPositions { get; } = [];
+        public List<RobotFrame> Frames { get; } = [];
+        public string GridText { get; set; } = "";
+    }
+
+    private sealed class RobotFrame
+    {
+        public RobotFrame(string gridText)
+        {
+            GridText = gridText;
+        }
+
+        public string GridText { get; }
+    }
+}

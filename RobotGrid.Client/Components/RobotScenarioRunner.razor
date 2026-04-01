@@ -1,0 +1,173 @@
+@using MartianRobot.Models
+@using MartianRobot.Services
+@using global::RobotGrid.Client.Services
+
+<div class="card border-secondary">
+    <div class="card-header">
+        <h5 class="mb-0">Try Your Own Scenario</h5>
+    </div>
+
+    <div class="card-body">
+        <EditForm Model="Model" OnValidSubmit="DrawScenario">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <div class="row g-3 mb-3">
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Grid Width</label>
+                    <InputNumber class="form-control" @bind-Value="Model.GridWidth" />
+                </div>
+
+                <div class="col-6 col-md-3">
+                    <label class="form-label">Grid Height</label>
+                    <InputNumber class="form-control" @bind-Value="Model.GridHeight" />
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Start X</label>
+                    <InputNumber class="form-control" @bind-Value="Model.StartX" />
+                </div>
+
+                <div class="col-6 col-md-2">
+                    <label class="form-label">Start Y</label>
+                    <InputNumber class="form-control" @bind-Value="Model.StartY" />
+                </div>
+
+                <div class="col-12 col-md-2">
+                    <label class="form-label">Heading</label>
+                    <InputSelect class="form-select" @bind-Value="Model.Heading">
+                        @foreach (var heading in Enum.GetValues<Heading>())
+                        {
+                            <option value="@heading">@heading</option>
+                        }
+                    </InputSelect>
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Instructions</label>
+                    <InputText class="form-control text-uppercase" @bind-Value="Model.Instructions" />
+                    <ValidationMessage For="() => Model.Instructions" />
+                </div>
+
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        Draw
+                    </button>
+                </div>
+            </div>
+        </EditForm>
+
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ErrorMessage
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(GridText))
+        {
+            <div class="card border-secondary">
+                <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center">
+                    <span>Scenario Output</span>
+                    <small class="text-body-secondary">`.` empty, `*` visited, `X` lost scent</small>
+                </div>
+                <div class="card-body bg-dark text-info">
+                    <pre class="mb-0 font-monospace small">@GridText</pre>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private readonly RobotGridTextRenderer _renderer = new();
+
+    private RobotScenarioInput Model { get; } = new()
+    {
+        GridWidth = 5,
+        GridHeight = 3,
+        StartX = 1,
+        StartY = 1,
+        Heading = Heading.East,
+        Instructions = "RFRFRFRF"
+    };
+
+    private string GridText { get; set; } = "";
+    private string? ErrorMessage { get; set; }
+
+    private void DrawScenario()
+    {
+        ErrorMessage = null;
+        GridText = "";
+
+        Grid.Width = Model.GridWidth;
+        Grid.Height = Model.GridHeight;
+        Grid.Reset();
+
+        try
+        {
+            var instructions = Model.Instructions.ToUpperInvariant();
+            var startRobot = new Robot(Model.StartX, Model.StartY, Model.Heading);
+            var currentRobot = CloneRobot(startRobot);
+            var visitedPositions = new HashSet<(int X, int Y)>();
+            var executor = new RobotInstructionExecutor();
+
+            TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
+
+            foreach (var command in instructions)
+            {
+                if (currentRobot.IsLost)
+                {
+                    break;
+                }
+
+                if (!executor.TryExecuteCommand(currentRobot, command))
+                {
+                    break;
+                }
+
+                TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
+            }
+
+            var lostPositions = new HashSet<(int X, int Y)>(Grid.LostPositions);
+
+            GridText = _renderer.BuildGridText(
+                Model.GridWidth,
+                Model.GridHeight,
+                startRobot,
+                instructions,
+                currentRobot,
+                lostPositions,
+                visitedPositions);
+        }
+        catch (ArgumentException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    private static Robot CloneRobot(Robot robot)
+    {
+        return new Robot(robot.Position.X, robot.Position.Y, robot.Heading)
+        {
+            IsLost = robot.IsLost
+        };
+    }
+
+    private static void TrackVisitedPosition(
+        Robot robot,
+        int width,
+        int height,
+        HashSet<(int X, int Y)> visitedPositions)
+    {
+        var x = robot.Position.X;
+        var y = robot.Position.Y;
+
+        if (x < 0 || x > width || y < 0 || y > height)
+        {
+            return;
+        }
+
+        visitedPositions.Add((x, y));
+    }
+}

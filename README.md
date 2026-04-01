@@ -1,67 +1,56 @@
-# MartianRobot
+# MartianRobot - UI branch
 
-This repository contains a `.NET 9` solution for the Martian Robots coding exercise.
+This branch extends the original `MartianRobot` assessment by adding web UI projects on top of the existing robot logic.
 
-## Original test statement
+## Purpose of this branch
 
-The original exercise was to build a program that simulates robots moving on a rectangular Martian grid.
+The goal of this branch is to expose the Martian Robot logic through a web-based user interface rather than a console application.
 
-### Requirements
-- The grid is bounded, with a maximum size of `50 x 50`
-- Each robot has:
-  - a starting position
-  - a heading of `N`, `E`, `S`, or `W`
-- Each robot receives an instruction string containing:
-  - `L` to turn left
-  - `R` to turn right
-  - `F` to move forward
-- If a robot moves off the grid, it becomes `LOST`
-- When a robot is lost, it leaves a scent at its last valid position
-- Future robots ignore a move that would cause them to be lost from the same scented position
-- Instruction strings are limited to `100` characters
+In this branch:
 
-The sample input and output from the original exercise are documented in `MartianRobot/README.md`.
+- the original console app code has been repurposed into a reusable class library
+- UI projects have been added to provide a browser-based experience
+- the robot movement and instruction logic remain in the shared `MartianRobot` project
 
-## Improvements made
+## Important
 
-This solution was extended beyond a minimal implementation to improve design, readability, and maintainability.
+If you want to review the original assessment submission as a standalone Martian Robot solution, look at the `master` branch.
 
-### Testing
-- Added a separate test project: `MartianRobot.Test`
-- Added unit coverage for key behavior such as:
-  - robot initialization
-  - turning left and right
-  - forward movement
-  - invalid starting positions
-  - invalid instructions
-  - over-length instruction strings
-  - lost robot behavior
-  - scented position behavior
+The `master` branch shows the original assessment version more directly.
 
-### Refactoring
-- Simplified `Program.cs` so it acts as a small runner for the sample scenarios
-- Refactored `Robot` to focus on state rather than orchestration
-- Added `RobotInstructionExecutor` to validate and execute instruction sequences
-- Replaced primitive heading values with a strongly typed `Heading` enum
-- Added a dedicated `Position` model
-- Introduced command-based instruction handling through `IRobotInstructionCommand`
-- Kept movement behavior encapsulated in command classes such as:
-  - `MoveForwardCommand`
-  - `TurnLeftCommand`
-  - `TurnRightCommand`
+## Branch structure
 
-## Benefits
-- Clearer separation of concerns
-- Better testability
-- Stronger typing
-- Easier maintenance
-- Easier extension for future commands
+This branch is organised as follows:
 
-## Solution structure
-- `MartianRobot/` - main console application
-- `MartianRobot.Test/` - unit test project
+- `MartianRobot/` - shared domain and execution logic, now used as a library
+- `RobotGrid/` - ASP.NET Core host project
+- `RobotGrid.Client/` - Blazor WebAssembly UI project
+
+## Key change from the original version
+
+### `MartianRobot` is now a library
+
+The original console application project has been converted into a reusable library so that the robot logic can be consumed by the UI projects.
+
+That means:
+
+- `MartianRobot` is no longer intended to be started directly
+- the web host project should be used as the startup project
+- the robot rules and command-processing behavior are shared by the UI
+
+## Why this change was made
+
+This branch separates responsibilities more clearly:
+
+- UI concerns live in the web projects
+- robot behavior remains in the shared library
+- the same core logic can be reused without depending on a console entry point
+
+## Which branch to inspect
+
+- Look at **this branch** for the UI-based version
+- Look at **`master`** for the original Martian Robot assessment solution
 
 ## Notes
-The root `README.md` summarises the original exercise and the improvements made in this submission.
 
-The app-specific rules and sample scenario are documented in `MartianRobot/README.md`.
+This branch should be understood as an extension of the original exercise, not as the original assessment submission itself.

@@ -50,4 +50,11 @@ public class RobotInstructionExecutor
             command.Execute(robot);
         }
     }
+    public bool TryExecuteCommand(Robot robot, char commandSymbol)
+    {
+        if (!_commands.TryGetValue(commandSymbol, out var command))
+            return false;
+        command.Execute(robot);
+        return true;
+    }
 }
