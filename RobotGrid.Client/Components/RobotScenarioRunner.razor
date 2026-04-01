@@ -8,7 +8,7 @@
     </div>
 
     <div class="card-body">
-        <EditForm Model="Model" OnValidSubmit="DrawScenario">
+        <EditForm Model="Model" OnValidSubmit="AnimateScenario">
             <DataAnnotationsValidator />
             <ValidationSummary />
 
@@ -50,8 +50,8 @@
                 </div>
 
                 <div class="col-12">
-                    <button type="submit" class="btn btn-primary">
-                        Draw
+                    <button type="submit" class="btn btn-primary" disabled="@IsAnimating">
+                        @(IsAnimating ? "Animating..." : "Animate")
                     </button>
                 </div>
             </div>
@@ -94,25 +94,34 @@
 
     private string GridText { get; set; } = "";
     private string? ErrorMessage { get; set; }
+    private bool IsAnimating { get; set; }
 
-    private void DrawScenario()
+    private async Task AnimateScenario()
     {
         ErrorMessage = null;
         GridText = "";
-
-        Grid.Width = Model.GridWidth;
-        Grid.Height = Model.GridHeight;
-        Grid.Reset();
+        IsAnimating = true;
 
         try
         {
+            Grid.Width = Model.GridWidth;
+            Grid.Height = Model.GridHeight;
+            Grid.Reset();
+
             var instructions = Model.Instructions.ToUpperInvariant();
             var startRobot = new Robot(Model.StartX, Model.StartY, Model.Heading);
             var currentRobot = CloneRobot(startRobot);
             var visitedPositions = new HashSet<(int X, int Y)>();
             var executor = new RobotInstructionExecutor();
+            var frames = new List<string>();
 
             TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
+            frames.Add(BuildGridText(
+                startRobot,
+                instructions,
+                currentRobot,
+                new HashSet<(int X, int Y)>(Grid.LostPositions),
+                visitedPositions));
 
             foreach (var command in instructions)
             {
@@ -127,23 +136,48 @@
                 }
 
                 TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
+
+                frames.Add(BuildGridText(
+                    startRobot,
+                    instructions,
+                    currentRobot,
+                    new HashSet<(int X, int Y)>(Grid.LostPositions),
+                    visitedPositions));
             }
 
-            var lostPositions = new HashSet<(int X, int Y)>(Grid.LostPositions);
-
-            GridText = _renderer.BuildGridText(
-                Model.GridWidth,
-                Model.GridHeight,
-                startRobot,
-                instructions,
-                currentRobot,
-                lostPositions,
-                visitedPositions);
+            foreach (var frame in frames)
+            {
+                GridText = frame;
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(600);
+            }
         }
         catch (ArgumentException ex)
         {
             ErrorMessage = ex.Message;
         }
+        finally
+        {
+            IsAnimating = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private string BuildGridText(
+        Robot startRobot,
+        string instructions,
+        Robot currentRobot,
+        HashSet<(int X, int Y)> lostPositions,
+        HashSet<(int X, int Y)> visitedPositions)
+    {
+        return _renderer.BuildGridText(
+            Model.GridWidth,
+            Model.GridHeight,
+            startRobot,
+            instructions,
+            currentRobot,
+            lostPositions,
+            visitedPositions);
     }
 
     private static Robot CloneRobot(Robot robot)

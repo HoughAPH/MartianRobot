@@ -1,56 +1,61 @@
 # MartianRobot - UI branch
 
-This branch extends the original `MartianRobot` assessment by adding web UI projects on top of the existing robot logic.
+This branch is my follow-on version of the original `MartianRobot` assessment.
 
-## Purpose of this branch
+The original assessment solution is still the main reference point, but in this branch I took the core robot logic and built a web UI around it so the behaviour can be exercised through a browser instead of only through a console entry point.
 
-The goal of this branch is to expose the Martian Robot logic through a web-based user interface rather than a console application.
+## What this branch is
 
-In this branch:
+This branch is not the original assessment submission.
 
-- the original console app code has been repurposed into a reusable class library
-- UI projects have been added to provide a browser-based experience
-- the robot movement and instruction logic remain in the shared `MartianRobot` project
+It is an extension of that work.
 
-## Important
+The purpose of this branch is to keep the original Martian Robot logic, but expose it through UI projects so the scenarios can be run visually.
 
-If you want to review the original assessment submission as a standalone Martian Robot solution, look at the `master` branch.
+## Where to look for the original assessment
 
-The `master` branch shows the original assessment version more directly.
+If you want to review the original Martian Robot assessment as it was first implemented, look at the `master` branch.
 
-## Branch structure
+That is the branch to use if you want to see the original assessment version directly.
 
-This branch is organised as follows:
+## What changed in this branch
 
-- `MartianRobot/` - shared domain and execution logic, now used as a library
+The main change is that the original `MartianRobot` project is no longer being treated as the app you start directly.
+
+Instead, it now acts as the core logic project that the UI uses.
+
+In other words:
+
+- `MartianRobot` contains the robot rules and instruction execution logic
+- `RobotGrid.Client` provides the Blazor WebAssembly UI
+- `RobotGrid` is the ASP.NET Core host project for the UI
+
+## Project structure
+
+- `MartianRobot/` - reusable robot logic and domain model
+- `RobotGrid.Client/` - Blazor WebAssembly front end
 - `RobotGrid/` - ASP.NET Core host project
-- `RobotGrid.Client/` - Blazor WebAssembly UI project
 
-## Key change from the original version
+## Why I changed it this way
 
-### `MartianRobot` is now a library
+I wanted to keep the robot logic separate from the UI.
 
-The original console application project has been converted into a reusable library so that the robot logic can be consumed by the UI projects.
+That makes the solution easier to reason about because:
 
-That means:
+- the Martian Robot behaviour stays in one place
+- the UI can use that logic without duplicating it
+- the original rules are still preserved
+- the application is easier to extend beyond a console-only version
 
-- `MartianRobot` is no longer intended to be started directly
-- the web host project should be used as the startup project
-- the robot rules and command-processing behavior are shared by the UI
+## Important note
 
-## Why this change was made
+`MartianRobot` is now a library project in this branch, not the startup project.
 
-This branch separates responsibilities more clearly:
+If you want to run the UI version, start the web host project rather than `MartianRobot` directly.
 
-- UI concerns live in the web projects
-- robot behavior remains in the shared library
-- the same core logic can be reused without depending on a console entry point
+## Summary
 
-## Which branch to inspect
+So the simplest way to read this branch is:
 
-- Look at **this branch** for the UI-based version
-- Look at **`master`** for the original Martian Robot assessment solution
-
-## Notes
-
-This branch should be understood as an extension of the original exercise, not as the original assessment submission itself.
+- `master` = original assessment solution
+- this branch = the same core logic, extended with a web UI
