@@ -12,7 +12,7 @@ Supported commands:
 - `L` — turn left
 - `R` — turn right
 
-If a robot moves off the grid, it becomes `LOST`. The last valid position is then marked as scented so a future robot can ignore the same fatal move.
+If a robot moves off the grid, it becomes `LOST`. Its last valid position is marked as scented so that future robots can ignore the same fatal move.
 
 ## Rules
 
@@ -26,7 +26,7 @@ If a robot moves off the grid, it becomes `LOST`. The last valid position is the
   - `E`
   - `S`
   - `W`
-- Instruction strings are limited to 100 characters
+- Instruction strings are limited to `100` characters
 - Invalid instructions throw an exception
 
 ## Sample Input / Output
