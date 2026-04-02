@@ -4,38 +4,50 @@
 
 <div class="card border-secondary">
     <div class="card-header">
-        <h5 class="mb-0">Try Your Own Scenario</h5>
+        <h5 class="mb-0">Specify your own grid and robot instructions</h5>
     </div>
 
     <div class="card-body">
         <EditForm Model="Model" OnValidSubmit="AnimateScenario">
             <DataAnnotationsValidator />
-            <ValidationSummary />
 
-            <div class="row g-3 mb-3">
-                <div class="col-6 col-md-3">
-                    <label class="form-label">Grid Width</label>
-                    <InputNumber class="form-control" @bind-Value="Model.GridWidth" />
+            <div class="vstack gap-2 mb-3">
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="fw-bold me-2">Grid:</span>
+
+                    <label class="fw-bold mb-0" for="grid-width">Width</label>
+                    <InputNumber id="grid-width"
+                                 class="form-control form-control-sm w-auto"
+                                 style="width: 5rem;"
+                                 @bind-Value="Model.GridWidth" />
+
+                    <label class="fw-bold mb-0 ms-2" for="grid-height">Height</label>
+                    <InputNumber id="grid-height"
+                                 class="form-control form-control-sm w-auto"
+                                 style="width: 5rem;"
+                                 @bind-Value="Model.GridHeight" />
                 </div>
 
-                <div class="col-6 col-md-3">
-                    <label class="form-label">Grid Height</label>
-                    <InputNumber class="form-control" @bind-Value="Model.GridHeight" />
-                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="fw-bold me-2">Start:</span>
 
-                <div class="col-6 col-md-2">
-                    <label class="form-label">Start X</label>
-                    <InputNumber class="form-control" @bind-Value="Model.StartX" />
-                </div>
+                    <label class="fw-bold mb-0" for="start-x">X</label>
+                    <InputNumber id="start-x"
+                                 class="form-control form-control-sm w-auto"
+                                 style="width: 4.5rem;"
+                                 @bind-Value="Model.StartX" />
 
-                <div class="col-6 col-md-2">
-                    <label class="form-label">Start Y</label>
-                    <InputNumber class="form-control" @bind-Value="Model.StartY" />
-                </div>
+                    <label class="fw-bold mb-0 ms-2" for="start-y">Y</label>
+                    <InputNumber id="start-y"
+                                 class="form-control form-control-sm w-auto"
+                                 style="width: 4.5rem;"
+                                 @bind-Value="Model.StartY" />
 
-                <div class="col-12 col-md-2">
-                    <label class="form-label">Heading</label>
-                    <InputSelect class="form-select" @bind-Value="Model.Heading">
+                    <label class="fw-bold mb-0 ms-2" for="heading">Heading</label>
+                    <InputSelect id="heading"
+                                 class="form-select form-select-sm w-auto"
+                                 style="width: 7rem;"
+                                 @bind-Value="Model.Heading">
                         @foreach (var heading in Enum.GetValues<Heading>())
                         {
                             <option value="@heading">@heading</option>
@@ -43,17 +55,20 @@
                     </InputSelect>
                 </div>
 
-                <div class="col-12">
-                    <label class="form-label">Instructions</label>
-                    <InputText class="form-control text-uppercase" @bind-Value="Model.Instructions" />
-                    <ValidationMessage For="() => Model.Instructions" />
-                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <label class="fw-bold mb-0" for="instructions">Instructions</label>
+                    <InputText id="instructions"
+                               class="form-control form-control-sm text-uppercase flex-grow-1"
+                               style="min-width: 14rem;"
+                               @bind-Value="Model.Instructions" />
 
-                <div class="col-12">
-                    <button type="submit" class="btn btn-primary" disabled="@IsAnimating">
+                    <button type="submit" class="btn btn-sm btn-primary" disabled="@IsAnimating">
                         @(IsAnimating ? "Animating..." : "Animate")
                     </button>
                 </div>
+
+                <ValidationMessage For="() => Model.Instructions" />
+                <ValidationSummary />
             </div>
         </EditForm>
 
@@ -80,7 +95,7 @@
 </div>
 
 @code {
-    private readonly RobotGridTextRenderer _renderer = new();
+    private readonly RobotScenarioFrameGenerator _frameGenerator = new();
 
     private RobotScenarioInput Model { get; } = new()
     {
@@ -106,48 +121,18 @@
         {
             Grid.Width = Model.GridWidth;
             Grid.Height = Model.GridHeight;
-            Grid.Reset();
 
-            var instructions = Model.Instructions.ToUpperInvariant();
             var startRobot = new Robot(Model.StartX, Model.StartY, Model.Heading);
-            var currentRobot = CloneRobot(startRobot);
-            var visitedPositions = new HashSet<(int X, int Y)>();
-            var executor = new RobotInstructionExecutor();
-            var frames = new List<string>();
 
-            TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
-            frames.Add(BuildGridText(
+            var frames = _frameGenerator.BuildFrames(
+                Model.GridWidth,
+                Model.GridHeight,
                 startRobot,
-                instructions,
-                currentRobot,
-                new HashSet<(int X, int Y)>(Grid.LostPositions),
-                visitedPositions));
-
-            foreach (var command in instructions)
-            {
-                if (currentRobot.IsLost)
-                {
-                    break;
-                }
-
-                if (!executor.TryExecuteCommand(currentRobot, command))
-                {
-                    break;
-                }
-
-                TrackVisitedPosition(currentRobot, Model.GridWidth, Model.GridHeight, visitedPositions);
-
-                frames.Add(BuildGridText(
-                    startRobot,
-                    instructions,
-                    currentRobot,
-                    new HashSet<(int X, int Y)>(Grid.LostPositions),
-                    visitedPositions));
-            }
+                Model.Instructions);
 
             foreach (var frame in frames)
             {
-                GridText = frame;
+                GridText = frame.GridText;
                 await InvokeAsync(StateHasChanged);
                 await Task.Delay(600);
             }
@@ -161,47 +146,5 @@
             IsAnimating = false;
             await InvokeAsync(StateHasChanged);
         }
-    }
-
-    private string BuildGridText(
-        Robot startRobot,
-        string instructions,
-        Robot currentRobot,
-        HashSet<(int X, int Y)> lostPositions,
-        HashSet<(int X, int Y)> visitedPositions)
-    {
-        return _renderer.BuildGridText(
-            Model.GridWidth,
-            Model.GridHeight,
-            startRobot,
-            instructions,
-            currentRobot,
-            lostPositions,
-            visitedPositions);
-    }
-
-    private static Robot CloneRobot(Robot robot)
-    {
-        return new Robot(robot.Position.X, robot.Position.Y, robot.Heading)
-        {
-            IsLost = robot.IsLost
-        };
-    }
-
-    private static void TrackVisitedPosition(
-        Robot robot,
-        int width,
-        int height,
-        HashSet<(int X, int Y)> visitedPositions)
-    {
-        var x = robot.Position.X;
-        var y = robot.Position.Y;
-
-        if (x < 0 || x > width || y < 0 || y > height)
-        {
-            return;
-        }
-
-        visitedPositions.Add((x, y));
     }
 }

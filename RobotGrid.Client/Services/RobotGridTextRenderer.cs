@@ -14,13 +14,14 @@ public sealed class RobotGridTextRenderer
         string instructions,
         Robot currentRobot,
         IReadOnlySet<(int X, int Y)> lostPositions,
-        IReadOnlySet<(int X, int Y)> visitedPositions)
+        IReadOnlySet<(int X, int Y)> visitedPositions,
+        string statusLabel = "Current")
     {
         var sb = new StringBuilder();
 
         sb.AppendLine($"Start:        {startRobot}");
         sb.AppendLine($"Instructions: {instructions}");
-        sb.AppendLine($"Current:      {currentRobot}");
+        sb.AppendLine($"{statusLabel}:".PadRight(14) + currentRobot);
         sb.AppendLine();
 
         for (int y = height; y >= 0; y--)
