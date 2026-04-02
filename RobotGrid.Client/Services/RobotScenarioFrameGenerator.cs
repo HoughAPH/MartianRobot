@@ -172,4 +172,3 @@ public sealed class RobotScenarioFrameGenerator
     }
 }
 
-public sealed record RobotGridAnimationFrame(string GridText);

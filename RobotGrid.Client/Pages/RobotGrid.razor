@@ -129,7 +129,7 @@
 
             foreach (var cmd in scenario.Instructions.ToUpperInvariant())
             {
-                if (scenario.CurrentRobot.IsLost)     
+                if (scenario.CurrentRobot.IsLost)
                 {
                     break;
                 }
@@ -187,7 +187,7 @@
 
     private void AddFrame(RobotScenario scenario)
     {
-        scenario.Frames.Add(new RobotFrame(
+        scenario.Frames.Add(new RobotGridAnimationFrame(
             BuildGridText(
                 scenario.StartRobot,
                 scenario.Instructions,
@@ -243,17 +243,7 @@
         public Robot CurrentRobot { get; set; }
         public HashSet<(int X, int Y)> LostPositions { get; } = [];
         public HashSet<(int X, int Y)> VisitedPositions { get; } = [];
-        public List<RobotFrame> Frames { get; } = [];
+        public List<RobotGridAnimationFrame> Frames { get; } = [];
         public string GridText { get; set; } = "";
-    }
-
-    private sealed class RobotFrame
-    {
-        public RobotFrame(string gridText)
-        {
-            GridText = gridText;
-        }
-
-        public string GridText { get; }
     }
 }
