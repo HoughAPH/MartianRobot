@@ -1,0 +1,39 @@
+ practical way to evaluate the whole solution is to review it in these areas:
+1.	Correctness
+•	Does the core robot logic match the problem rules?
+•	Are edge cases handled clearly?
+•	Are invalid inputs rejected consistently?
+2.	Readability
+•	Are class and method names clear?
+•	Are methods small and single-purpose?
+•	Is duplicated logic limited?
+3.	Design
+•	Are responsibilities separated cleanly?
+•	Is the command model easy to extend?
+•	Are UI concerns kept out of domain logic?
+4.	Testability
+•	Can core logic be tested without UI?
+•	Are important behaviors covered by unit tests?
+•	Are tests readable and focused?
+5.	Maintainability
+•	Are dependencies simple?
+•	Is shared state minimized?
+•	Are models and services easy to reason about?
+6.	Performance
+•	Are there obvious wasteful loops, allocations, or repeated rendering?
+•	Are slow paths measured instead of guessed?
+7.	Blazor/UI quality
+•	Are components small and focused?
+•	Is state handled predictably?
+•	Is interactivity/responsiveness acceptable?
+8.	Production readiness
+•	Error handling
+•	Validation
+•	Logging
+•	Security basics
+•	Configuration discipline
+A good conclusion format is:
+•	Good
+•	Risky
+•	Needs refactor
+•	Not enough evidence

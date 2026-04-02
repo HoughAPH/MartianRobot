@@ -6,18 +6,15 @@ namespace RobotGrid.Client.Services;
 public sealed class RobotScenarioFrameGenerator
 {
     private readonly RobotGridTextRenderer _renderer = new();
-    private readonly RobotInstructionExecutor _executor = new();
 
     public RobotGridAnimationFrame BuildInitialFrame(
-        int width,
-        int height,
+        Grid grid,
         Robot startRobot,
         string instructions,
         bool resetGrid = true)
     {
         return BuildFramesCore(
-            width,
-            height,
+            grid,
             startRobot,
             instructions,
             resetGrid,
@@ -25,15 +22,13 @@ public sealed class RobotScenarioFrameGenerator
     }
 
     public IReadOnlyList<RobotGridAnimationFrame> BuildFrames(
-        int width,
-        int height,
+        Grid grid,
         Robot startRobot,
         string instructions,
         bool resetGrid = true)
     {
         return BuildFramesCore(
-            width,
-            height,
+            grid,
             startRobot,
             instructions,
             resetGrid,
@@ -41,34 +36,31 @@ public sealed class RobotScenarioFrameGenerator
     }
 
     private List<RobotGridAnimationFrame> BuildFramesCore(
-        int width,
-        int height,
+        Grid grid,
         Robot startRobot,
         string instructions,
         bool resetGrid,
         bool includeInstructionFrames)
     {
+        ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(startRobot);
         ArgumentNullException.ThrowIfNull(instructions);
 
-        Grid.Width = width;
-        Grid.Height = height;
-
         if (resetGrid)
         {
-            Grid.Reset();
+            grid.Reset();
         }
 
         var normalizedInstructions = instructions.ToUpperInvariant();
         var currentRobot = CloneRobot(startRobot);
+        var executor = new RobotInstructionExecutor(grid);
         HashSet<(int X, int Y)> visitedPositions = [];
         List<RobotGridAnimationFrame> frames = [];
 
-        TrackVisitedPosition(currentRobot, width, height, visitedPositions);
+        TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
         frames.Add(CreateFrame(
-            width,
-            height,
+            grid,
             startRobot,
             normalizedInstructions,
             currentRobot,
@@ -83,8 +75,7 @@ public sealed class RobotScenarioFrameGenerator
         if (normalizedInstructions.Length == 0)
         {
             frames[0] = CreateFrame(
-                width,
-                height,
+                grid,
                 startRobot,
                 normalizedInstructions,
                 currentRobot,
@@ -103,18 +94,17 @@ public sealed class RobotScenarioFrameGenerator
                 break;
             }
 
-            if (!_executor.TryExecuteCommand(currentRobot, command))
+            if (!executor.TryExecuteCommand(currentRobot, command))
             {
                 throw new ArgumentException($"Invalid command: {command}. Only F, L, and R are allowed.");
             }
 
-            TrackVisitedPosition(currentRobot, width, height, visitedPositions);
+            TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
             var isFinalFrame = currentRobot.IsLost || i == normalizedInstructions.Length - 1;
 
             frames.Add(CreateFrame(
-                width,
-                height,
+                grid,
                 startRobot,
                 normalizedInstructions,
                 currentRobot,
@@ -126,8 +116,7 @@ public sealed class RobotScenarioFrameGenerator
     }
 
     private RobotGridAnimationFrame CreateFrame(
-        int width,
-        int height,
+        Grid grid,
         Robot startRobot,
         string instructions,
         Robot currentRobot,
@@ -136,12 +125,12 @@ public sealed class RobotScenarioFrameGenerator
     {
         return new RobotGridAnimationFrame(
             _renderer.BuildGridText(
-                width,
-                height,
+                grid.Width,
+                grid.Height,
                 startRobot,
                 instructions,
                 currentRobot,
-                Grid.LostPositions,
+                grid.LostPositions,
                 visitedPositions,
                 statusLabel));
     }
@@ -156,14 +145,13 @@ public sealed class RobotScenarioFrameGenerator
 
     private static void TrackVisitedPosition(
         Robot robot,
-        int width,
-        int height,
+        Grid grid,
         HashSet<(int X, int Y)> visitedPositions)
     {
         var x = robot.Position.X;
         var y = robot.Position.Y;
 
-        if (x < 0 || x > width || y < 0 || y > height)
+        if (x < 0 || x > grid.Width || y < 0 || y > grid.Height)
         {
             return;
         }

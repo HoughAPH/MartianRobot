@@ -6,9 +6,10 @@ public class MoveForwardCommand : IRobotInstructionCommand
 {
     public char Symbol => 'F';
 
-    public void Execute(Robot robot)
+    public void Execute(Robot robot, Grid grid)
     {
         ArgumentNullException.ThrowIfNull(robot);
+        ArgumentNullException.ThrowIfNull(grid);
 
         var (newX, newY) = robot.Heading switch
         {
@@ -19,15 +20,15 @@ public class MoveForwardCommand : IRobotInstructionCommand
             _ => throw new ArgumentOutOfRangeException(nameof(robot.Heading))
         };
 
-        if (!Grid.IsWithinBounds(newX, newY))
+        if (!grid.IsWithinBounds(newX, newY))
         {
-            if (Grid.IsLostPosition(robot.Position.X, robot.Position.Y))
+            if (grid.IsLostPosition(robot.Position.X, robot.Position.Y))
             {
                 return;
             }
 
             robot.IsLost = true;
-            Grid.AddLostPosition(robot.Position.X, robot.Position.Y);
+            grid.AddLostPosition(robot.Position.X, robot.Position.Y);
             return;
         }
 

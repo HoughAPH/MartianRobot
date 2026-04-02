@@ -8,11 +8,6 @@ public class Robot
 
     public Robot(int startX, int startY, Heading initialHeading = Heading.North)
     {
-        if (!Grid.IsWithinBounds(startX, startY))
-        {
-            throw new ArgumentException("Starting position is outside grid boundaries");
-        }
-
         Position = new Position(startX, startY);
         Heading = initialHeading;
         IsLost = false;

@@ -7,10 +7,8 @@ public class Program
 {
     static void Main(string[] args)
     {
-        Grid.Width = 5;
-        Grid.Height = 3;
-
-        var executor = new RobotInstructionExecutor();
+        var grid = new Grid(5, 3);
+        var executor = new RobotInstructionExecutor(grid);
 
         var scenarios = new (Robot Robot, string Instructions)[]
         {

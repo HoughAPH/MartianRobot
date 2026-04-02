@@ -6,9 +6,10 @@ public class TurnRightCommand : IRobotInstructionCommand
 {
     public char Symbol => 'R';
 
-    public void Execute(Robot robot)
+    public void Execute(Robot robot, Grid grid)
     {
         ArgumentNullException.ThrowIfNull(robot);
+        ArgumentNullException.ThrowIfNull(grid);
 
         robot.Heading = robot.Heading switch
         {

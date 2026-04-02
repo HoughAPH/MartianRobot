@@ -6,5 +6,5 @@ public interface IRobotInstructionCommand
 {
     char Symbol { get; }
 
-    void Execute(Robot robot);
+    void Execute(Robot robot, Grid grid);
 }

@@ -1,4 +1,3 @@
-using RobotGrid.Client;
 using RobotGrid.Components;
 
 var builder = WebApplication.CreateBuilder(args);
