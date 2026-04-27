@@ -1,0 +1,166 @@
+@page "/robot-scenario-runner"
+@using MartianRobot.Models
+@using MartianRobot.Services
+@using global::RobotGrid.Client.Services
+
+<PageTitle>Robot Scenario Runner</PageTitle>
+
+<div class="container py-4">
+    <div class="card border-secondary">
+        <div class="card-header">
+            <h5 class="mb-0">Specify your own grid and robot instructions</h5>
+        </div>
+
+        <div class="card-body">
+            <EditForm Model="Model" OnValidSubmit="AnimateScenario">
+                <DataAnnotationsValidator />
+
+                <div class="vstack gap-2 mb-3">
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-bold me-2">Grid:</span>
+
+                        <label class="fw-bold mb-0" for="grid-width">Width</label>
+                        <InputNumber id="grid-width"
+                                     class="form-control form-control-sm w-auto"
+                                     style="width: 5rem;"
+                                     @bind-Value="Model.GridWidth" />
+
+                        <label class="fw-bold mb-0 ms-2" for="grid-height">Height</label>
+                        <InputNumber id="grid-height"
+                                     class="form-control form-control-sm w-auto"
+                                     style="width: 5rem;"
+                                     @bind-Value="Model.GridHeight" />
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <span class="fw-bold me-2">Start:</span>
+
+                        <label class="fw-bold mb-0" for="start-x">X</label>
+                        <InputNumber id="start-x"
+                                     class="form-control form-control-sm w-auto"
+                                     style="width: 4.5rem;"
+                                     @bind-Value="Model.StartX" />
+
+                        <label class="fw-bold mb-0 ms-2" for="start-y">Y</label>
+                        <InputNumber id="start-y"
+                                     class="form-control form-control-sm w-auto"
+                                     style="width: 4.5rem;"
+                                     @bind-Value="Model.StartY" />
+
+                        <label class="fw-bold mb-0 ms-2" for="heading">Heading</label>
+                        <InputSelect id="heading"
+                                     class="form-select form-select-sm w-auto"
+                                     style="width: 7rem;"
+                                     @bind-Value="Model.Heading">
+                            @foreach (var heading in Enum.GetValues<Heading>())
+                            {
+                                <option value="@heading">@heading</option>
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div class="d-flex flex-wrap align-items-center gap-2">
+                        <label class="fw-bold mb-0" for="instructions">Instructions</label>
+                        <InputText id="instructions"
+                                   class="form-control form-control-sm text-uppercase flex-grow-1"
+                                   style="min-width: 14rem;"
+                                   @bind-Value="Model.Instructions" />
+
+                        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="LoadHeavySample" disabled="@IsAnimating">
+                            Load Heavy Sample
+                        </button>
+
+                        <button type="submit" class="btn btn-sm btn-primary" disabled="@IsAnimating">
+                            @(IsAnimating ? "Animating..." : "Animate")
+                        </button>
+                    </div>
+
+                    <ValidationMessage For="() => Model.Instructions" />
+                    <ValidationSummary />
+                </div>
+            </EditForm>
+
+            @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+            {
+                <div class="alert alert-danger" role="alert">
+                    @ErrorMessage
+                </div>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(GridText))
+            {
+                <div class="card border-secondary">
+                    <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center">
+                        <span>Scenario Output</span>
+                        <small class="text-body-secondary">`.` empty, `*` visited, `X` lost scent</small>
+                    </div>
+                    <div class="card-body bg-dark text-info">
+                        <pre class="mb-0 font-monospace small">@GridText</pre>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+@code {
+    private readonly RobotScenarioFrameGenerator _frameGenerator = new();
+
+    private RobotScenarioInput Model { get; } = new()
+    {
+        GridWidth = 5,
+        GridHeight = 3,
+        StartX = 1,
+        StartY = 1,
+        Heading = Heading.East,
+        Instructions = "RFRFRFRF"
+    };
+
+    private string GridText { get; set; } = "";
+    private string? ErrorMessage { get; set; }
+    private bool IsAnimating { get; set; }
+
+    private void LoadHeavySample()
+    {
+        Model.GridWidth = 50;
+        Model.GridHeight = 50;
+        Model.StartX = 25;
+        Model.StartY = 25;
+        Model.Heading = Heading.North;
+        Model.Instructions = string.Concat(Enumerable.Repeat("FFRFFRFFRFFR", 8));
+        ErrorMessage = null;
+    }
+
+    private async Task AnimateScenario()
+    {
+        ErrorMessage = null;
+        GridText = "";
+        IsAnimating = true;
+
+        try
+        {
+            var grid = new Grid(Model.GridWidth, Model.GridHeight);
+            var startRobot = new Robot(Model.StartX, Model.StartY, Model.Heading);
+
+            var frames = _frameGenerator.BuildFrames(
+                grid,
+                startRobot,
+                Model.Instructions);
+
+            foreach (var frame in frames)
+            {
+                GridText = frame.GridText;
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(600);
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            ErrorMessage = ex.Message;
+        }
+        finally
+        {
+            IsAnimating = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
