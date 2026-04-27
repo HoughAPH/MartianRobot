@@ -1,0 +1,205 @@
+@page "/route-builder"
+@using global::RobotGrid.Client.Services
+
+<PageTitle>Route Builder</PageTitle>
+
+<div class="container py-4">
+    <h1 class="h3 mb-3">Route Builder</h1>
+
+    <div class="d-flex flex-wrap align-items-end gap-2 mb-3">
+        <div>
+            <label class="form-label fw-bold mb-1" for="grid-width">Width</label>
+            <InputNumber id="grid-width"
+                         class="form-control form-control-sm"
+                         style="width: 5rem;"
+                         @bind-Value="Width" />
+        </div>
+
+        <div>
+            <label class="form-label fw-bold mb-1" for="grid-height">Height</label>
+            <InputNumber id="grid-height"
+                         class="form-control form-control-sm"
+                         style="width: 5rem;"
+                         @bind-Value="Height" />
+        </div>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="CreateGrid">
+            Create Grid
+        </button>
+
+        <button type="button" class="btn btn-sm btn-outline-secondary" @onclick="UndoLast" disabled="@(RouteCells.Count == 0)">
+            Undo Last
+        </button>
+
+        <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearRoute" disabled="@(RouteCells.Count == 0)">
+            Clear
+        </button>
+    </div>
+
+    <p class="text-muted small mb-3">
+        First click sets the start cell. Each next click adds the next move.
+        The instruction string updates automatically.
+    </p>
+
+    <table class="table table-bordered w-auto align-middle">
+        <tbody>
+            @for (var y = Height; y >= 0; y--)
+            {
+                <tr>
+                    @for (var x = 0; x <= Width; x++)
+                    {
+                        var currentX = x;
+                        var currentY = y;
+                        var displayNumber = GetStepNumber(currentX, currentY);
+
+                        <td class="p-1">
+                            <button type="button"
+                                    class="@GetCellButtonClass(currentX, currentY)"
+                                    style="width: 3rem; height: 3rem;"
+                                    @onclick="() => HandleCellClick(currentX, currentY)">
+                                @displayNumber
+                            </button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+    {
+        <div class="alert alert-danger mt-3 mb-0">@ErrorMessage</div>
+    }
+
+    <div class="card mt-3">
+        <div class="card-header">
+            <strong>Output</strong>
+        </div>
+        <div class="card-body">
+            <div class="mb-2">
+                <strong>Start:</strong>
+                @if (RouteCells.Count > 0)
+                {
+                    <span>@RouteCells[0].X, @RouteCells[0].Y</span>
+                }
+                else
+                {
+                    <span class="text-muted">Not set</span>
+                }
+            </div>
+
+            <div class="mb-2">
+                <strong>Instruction String:</strong>
+                <span class="font-monospace ms-1">@(Result?.Instructions ?? string.Empty)</span>
+            </div>
+
+            <div class="small text-muted">
+                Cells in route: @RouteCells.Count
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private int Width { get; set; } = 6;
+    private int Height { get; set; } = 4;
+    private List<(int X, int Y)> RouteCells { get; } = [];
+    private RouteConversionResult? Result { get; set; }
+    private string? ErrorMessage { get; set; }
+
+    private void CreateGrid()
+    {
+        Width = Math.Max(1, Width);
+        Height = Math.Max(1, Height);
+        ClearRoute();
+    }
+
+    private void ClearRoute()
+    {
+        RouteCells.Clear();
+        Result = null;
+        ErrorMessage = null;
+    }
+
+    private void UndoLast()
+    {
+        if (RouteCells.Count == 0)
+        {
+            return;
+        }
+
+        RouteCells.RemoveAt(RouteCells.Count - 1);
+        Recalculate();
+    }
+
+    private void HandleCellClick(int x, int y)
+    {
+        var cell = (X: x, Y: y);
+
+        if (RouteCells.Count > 0 && RouteCells[^1] == cell)
+        {
+            return;
+        }
+
+        if (RouteCells.Count > 0 && !IsAdjacent(RouteCells[^1], cell))
+        {
+            ErrorMessage = "Choose a neighboring cell, including diagonals.";
+            return;
+        }
+        if (!RouteCells.Contains(cell))
+            RouteCells.Add(cell);
+
+        Recalculate();
+    }
+
+    private void Recalculate()
+    {
+        ErrorMessage = null;
+
+        if (RouteCells.Count < 2)
+        {
+            Result = null;
+            return;
+        }
+
+        try
+        {
+            Result = RouteToInstructionConverter.Convert(RouteCells);
+        }
+        catch (ArgumentException ex)
+        {
+            Result = null;
+            ErrorMessage = ex.Message;
+        }
+    }
+
+    private bool IsAdjacent((int X, int Y) from, (int X, int Y) to)
+    {
+        var dx = Math.Abs(to.X - from.X);
+        var dy = Math.Abs(to.Y - from.Y);
+        return dx <= 1 && dy <= 1 && (dx != 0 || dy != 0);
+    }
+
+    private int GetStepNumber(int x, int y)
+    {
+        var index = RouteCells.IndexOf((x, y));
+        return index >= 0 ? index + 1 : 0;
+    }
+
+    private string GetCellButtonClass(int x, int y)
+    {
+        var cell = (X: x, Y: y);
+
+        if (RouteCells.Count > 0 && RouteCells[0] == cell)
+        {
+            return "btn btn-sm btn-success";
+        }
+
+        if (RouteCells.Contains(cell))
+        {
+            return "btn btn-sm btn-primary";
+        }
+
+        return "btn btn-sm btn-outline-secondary";
+    }
+}

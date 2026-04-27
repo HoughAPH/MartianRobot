@@ -38,10 +38,6 @@
                     </div>
                 }
             </div>
-
-            <hr class="my-4" />
-
-            <RobotGrid.Client.Components.RobotScenarioRunner />
         </div>
     </div>
 </div>
@@ -68,28 +64,17 @@
         try
         {
             _scenarioAnimationService.ResetScenarios(_grid, Scenarios);
-            _scenarioAnimationService.PrecomputeFrames(_grid, Scenarios);
 
             foreach (var scenario in Scenarios)
             {
-                scenario.GridText = scenario.Frames[0].GridText;
-            }
+                var frames = _scenarioAnimationService.BuildScenarioFrames(_grid, scenario);
 
-            await InvokeAsync(StateHasChanged);
-            await Task.Delay(600);
-
-            var maxFrameCount = Scenarios.Max(scenario => scenario.Frames.Count);
-
-            for (var frameIndex = 1; frameIndex < maxFrameCount; frameIndex++)
-            {
-                foreach (var scenario in Scenarios)
+                foreach (var frame in frames)
                 {
-                    var safeIndex = Math.Min(frameIndex, scenario.Frames.Count - 1);
-                    scenario.GridText = scenario.Frames[safeIndex].GridText;
+                    scenario.GridText = frame.GridText;
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(600);
                 }
-
-                await InvokeAsync(StateHasChanged);
-                await Task.Delay(600);
             }
         }
         finally

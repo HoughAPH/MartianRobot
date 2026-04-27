@@ -35,21 +35,18 @@ public sealed class RobotScenarioAnimationService
         }
     }
 
-    public void PrecomputeFrames(Grid grid, IEnumerable<RobotScenarioViewModel> scenarios)
+    public IReadOnlyList<RobotGridAnimationFrame> BuildScenarioFrames(Grid grid, RobotScenarioViewModel scenario)
     {
         ArgumentNullException.ThrowIfNull(grid);
-        ArgumentNullException.ThrowIfNull(scenarios);
+        ArgumentNullException.ThrowIfNull(scenario);
 
-        grid.Reset();
+        scenario.Frames.Clear();
+        scenario.Frames.AddRange(_frameGenerator.BuildFrames(
+            grid,
+            scenario.StartRobot,
+            scenario.Instructions,
+            resetGrid: false));
 
-        foreach (var scenario in scenarios)
-        {
-            scenario.Frames.Clear();
-            scenario.Frames.AddRange(_frameGenerator.BuildFrames(
-                grid,
-                scenario.StartRobot,
-                scenario.Instructions,
-                resetGrid: false));
-        }
+        return scenario.Frames;
     }
 }

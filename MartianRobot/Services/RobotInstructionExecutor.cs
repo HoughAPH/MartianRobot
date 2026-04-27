@@ -13,6 +13,8 @@ public class RobotInstructionExecutor
             grid,
             [
                 new MoveForwardCommand(),
+                new MoveDiagonalLeftCommand(),
+                new MoveDiagonalRightCommand(),
                 new TurnLeftCommand(),
                 new TurnRightCommand()
             ])

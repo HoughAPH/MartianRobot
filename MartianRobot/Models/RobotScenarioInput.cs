@@ -4,6 +4,8 @@ namespace MartianRobot.Models;
 
 public sealed class RobotScenarioInput : IValidatableObject
 {
+    private string _instructions = "";
+
     [Range(0, 50)]
     public int GridWidth { get; set; } = 5;
 
@@ -20,8 +22,12 @@ public sealed class RobotScenarioInput : IValidatableObject
 
     [Required]
     [StringLength(100)]
-    [RegularExpression("^[FLRflr]*$", ErrorMessage = "Use only F, L, and R.")]
-    public string Instructions { get; set; } = "";
+    [RegularExpression("^[FLRQE]*$", ErrorMessage = "Use only F, L, R, Q, and E.")]
+    public string Instructions
+    {
+        get => _instructions;
+        set => _instructions = NormalizeInstructions(value);
+    }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
@@ -38,5 +44,19 @@ public sealed class RobotScenarioInput : IValidatableObject
                 $"Start Y must be within the grid height (0 to {GridHeight}).",
                 [nameof(StartY), nameof(GridHeight)]);
         }
+    }
+
+    private static string NormalizeInstructions(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return "";
+        }
+
+        return new string(
+            value
+                .Where(c => !char.IsWhiteSpace(c))
+                .Select(char.ToUpperInvariant)
+                .ToArray());
     }
 }
