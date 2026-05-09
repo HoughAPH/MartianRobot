@@ -1,17 +1,10 @@
 namespace MartianRobot.Models;
 
-public class Robot
+public class Robot(int startX, int startY, Heading initialHeading = Heading.North)
 {
-    public Position Position { get; set; }
-    public Heading Heading { get; set; }
-    public bool IsLost { get; set; }
-
-    public Robot(int startX, int startY, Heading initialHeading = Heading.North)
-    {
-        Position = new Position(startX, startY);
-        Heading = initialHeading;
-        IsLost = false;
-    }
+    public Position Position { get; set; } = new Position(startX, startY);
+    public Heading Heading { get; set; } = initialHeading;
+    public bool IsLost { get; set; } = false;
 
     public override string ToString()
     {

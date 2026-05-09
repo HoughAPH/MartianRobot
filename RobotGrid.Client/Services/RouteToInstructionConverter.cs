@@ -14,7 +14,8 @@ public static class RouteToInstructionConverter
         }
 
         var (X, Y) = routeCells[0];
-        var currentHeading = Heading.North;
+        Heading? startHeading = null;
+        Heading? currentHeading = null;
         List<char> instructions = [];
 
         for (var i = 1; i < routeCells.Count; i++)
@@ -31,7 +32,16 @@ public static class RouteToInstructionConverter
             if (isOrthogonal)
             {
                 var targetHeading = GetHeadingFromOrthogonalStep(step.Dx, step.Dy);
-                AppendTurnCommands(instructions, currentHeading, targetHeading);
+
+                if (i == 1)
+                {
+                    startHeading = targetHeading;
+                    currentHeading = targetHeading;
+                    instructions.Add('F');
+                    continue;
+                }
+
+                AppendTurnCommands(instructions, currentHeading!.Value, targetHeading);
                 instructions.Add('F');
                 currentHeading = targetHeading;
                 continue;
@@ -39,13 +49,18 @@ public static class RouteToInstructionConverter
 
             if (isDiagonal)
             {
-                if (MatchesDiagonalLeft(currentHeading, step.Dx, step.Dy))
+                if (currentHeading is null)
+                {
+                    throw new ArgumentException("The first move must be orthogonal.");
+                }
+
+                if (MatchesDiagonalLeft(currentHeading.Value, step.Dx, step.Dy))
                 {
                     instructions.Add('Q');
                     continue;
                 }
 
-                if (MatchesDiagonalRight(currentHeading, step.Dx, step.Dy))
+                if (MatchesDiagonalRight(currentHeading.Value, step.Dx, step.Dy))
                 {
                     instructions.Add('E');
                     continue;
@@ -57,11 +72,17 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("Each move must go to a neighboring cell.");
         }
 
+        if (startHeading is null || currentHeading is null)
+        {
+            throw new ArgumentException("The first move must be orthogonal.");
+        }
+
         return new RouteConversionResult(
-            X,
-            Y,
-            currentHeading,
-            new string(instructions.ToArray()));
+            StartX: X,
+            StartY: Y,
+            StartHeading: startHeading.Value,
+            CurrentHeading: currentHeading.Value,
+            Instructions: new string([.. instructions]));
     }
 
     public static RouteConversionResult Convert(string[][] cells)
@@ -162,15 +183,17 @@ public static class RouteToInstructionConverter
         }
 
         var instructions = BuildInstructions(path);
+        var test = path[0];
 
         return new RouteConversionResult(
             StartX: start.Value.Col,
             StartY: height - 1 - start.Value.Row,
-            CurrentHeading: path[0],
+            StartHeading: path[0],
+            CurrentHeading: path[^1],
             Instructions: instructions);
     }
 
-    private static string BuildInstructions(IReadOnlyList<Heading> path)
+    private static string BuildInstructions(List<Heading> path)
     {
         if (path.Count == 0)
         {
@@ -225,7 +248,6 @@ public static class RouteToInstructionConverter
         };
     }
 
-    //this calculates the minimal turn commands (L/R) needed to change from current heading to target heading
     private static void AppendTurnCommands(List<char> instructions, Heading current, Heading target)
     {
         var currentIndex = ToIndex(current);
@@ -323,5 +345,6 @@ public static class RouteToInstructionConverter
 public sealed record RouteConversionResult(
     int StartX,
     int StartY,
+    Heading StartHeading,
     Heading CurrentHeading,
     string Instructions);

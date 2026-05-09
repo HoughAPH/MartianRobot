@@ -67,9 +67,7 @@
 
             foreach (var scenario in Scenarios)
             {
-                var frames = _scenarioAnimationService.BuildScenarioFrames(_grid, scenario);
-
-                foreach (var frame in frames)
+                foreach (var frame in _scenarioAnimationService.BuildScenarioFrames(_grid, scenario))
                 {
                     scenario.GridText = frame.GridText;
                     await InvokeAsync(StateHasChanged);

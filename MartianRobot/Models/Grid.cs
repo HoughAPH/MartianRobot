@@ -1,15 +1,9 @@
 namespace MartianRobot.Models;
 
-public sealed class Grid
+public sealed class Grid(int width = 50, int height = 50)
 {
-    public Grid(int width = 50, int height = 50)
-    {
-        Width = width;
-        Height = height;
-    }
-
-    public int Width { get; set; }
-    public int Height { get; set; }
+    public int Width { get; set; } = width;
+    public int Height { get; set; } = height;
     public HashSet<(int X, int Y)> LostPositions { get; } = [];
 
     public bool IsWithinBounds(int x, int y)

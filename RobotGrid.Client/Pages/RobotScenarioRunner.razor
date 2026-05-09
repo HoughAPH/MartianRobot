@@ -2,6 +2,7 @@
 @using MartianRobot.Models
 @using MartianRobot.Services
 @using global::RobotGrid.Client.Services
+@inject NavigationManager NavigationManager
 
 <PageTitle>Robot Scenario Runner</PageTitle>
 
@@ -102,8 +103,30 @@
         </div>
     </div>
 </div>
+
 @code {
     private readonly RobotScenarioFrameGenerator _frameGenerator = new();
+
+    [SupplyParameterFromQuery(Name = "width")]
+    private int? WidthQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "height")]
+    private int? HeightQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "startX")]
+    private int? StartXQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "startY")]
+    private int? StartYQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "heading")]
+    private string? HeadingQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "instructions")]
+    private string? InstructionsQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "autorun")]
+    private bool? AutoRunQuery { get; set; }
 
     private RobotScenarioInput Model { get; } = new()
     {
@@ -118,6 +141,78 @@
     private string GridText { get; set; } = "";
     private string? ErrorMessage { get; set; }
     private bool IsAnimating { get; set; }
+    private bool _hasAppliedQueryParameters;
+    private bool _hasAutoRunFromQuery;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ApplyOptionalQueryParameters();
+
+        if (ShouldAutoRunFromQuery())
+        {
+            _hasAutoRunFromQuery = true;
+            await AnimateScenario();
+        }
+    }
+
+    private void ApplyOptionalQueryParameters()
+    {
+        if (_hasAppliedQueryParameters)
+        {
+            return;
+        }
+
+        if (WidthQuery.HasValue)
+        {
+            Model.GridWidth = WidthQuery.Value;
+        }
+
+        if (HeightQuery.HasValue)
+        {
+            Model.GridHeight = HeightQuery.Value;
+        }
+
+        if (StartXQuery.HasValue)
+        {
+            Model.StartX = StartXQuery.Value;
+        }
+
+        if (StartYQuery.HasValue)
+        {
+            Model.StartY = StartYQuery.Value;
+        }
+
+        if (!string.IsNullOrWhiteSpace(HeadingQuery))
+        {
+            if (Enum.TryParse<Heading>(HeadingQuery, ignoreCase: true, out var heading))
+            {
+                Model.Heading = heading;
+            }
+            else
+            {
+                ErrorMessage = $"Invalid heading '{HeadingQuery}'.";
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(InstructionsQuery))
+        {
+            Model.Instructions = InstructionsQuery;
+        }
+
+        _hasAppliedQueryParameters = true;
+    }
+
+    private bool ShouldAutoRunFromQuery()
+    {
+        return !_hasAutoRunFromQuery
+            && AutoRunQuery == true
+            && WidthQuery.HasValue
+            && HeightQuery.HasValue
+            && StartXQuery.HasValue
+            && StartYQuery.HasValue
+            && !string.IsNullOrWhiteSpace(HeadingQuery)
+            && !string.IsNullOrWhiteSpace(InstructionsQuery);
+    }
 
     private void LoadHeavySample()
     {
@@ -141,12 +236,10 @@
             var grid = new Grid(Model.GridWidth, Model.GridHeight);
             var startRobot = new Robot(Model.StartX, Model.StartY, Model.Heading);
 
-            var frames = _frameGenerator.BuildFrames(
+            foreach (var frame in _frameGenerator.BuildFrames(
                 grid,
                 startRobot,
-                Model.Instructions);
-
-            foreach (var frame in frames)
+                Model.Instructions))
             {
                 GridText = frame.GridText;
                 await InvokeAsync(StateHasChanged);

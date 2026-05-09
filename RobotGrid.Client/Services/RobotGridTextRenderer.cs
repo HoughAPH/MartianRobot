@@ -7,7 +7,7 @@ public sealed class RobotGridTextRenderer
 {
     private const char VisitedCellSymbol = '*';
 
-    public string BuildGridText(
+    public static string BuildGridText(
         int width,
         int height,
         Robot startRobot,
@@ -23,7 +23,7 @@ public sealed class RobotGridTextRenderer
         sb.AppendLine($"Instructions: {instructions}");
         sb.AppendLine($"{statusLabel}:".PadRight(14) + currentRobot);
         sb.AppendLine();
-
+        //draw grid from top left to bottom right 
         for (int y = height; y >= 0; y--)
         {
             for (int x = 0; x <= width; x++)

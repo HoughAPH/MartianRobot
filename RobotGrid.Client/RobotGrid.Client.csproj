@@ -16,8 +16,4 @@
     <ProjectReference Include="..\MartianRobot\MartianRobot.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Components\" />
-  </ItemGroup>
-
 </Project>

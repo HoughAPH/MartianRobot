@@ -26,7 +26,6 @@ public sealed class RobotScenarioAnimationService
 
         foreach (var scenario in scenarios)
         {
-            scenario.Frames.Clear();
             scenario.GridText = _frameGenerator.BuildInitialFrame(
                 grid,
                 scenario.StartRobot,
@@ -35,18 +34,15 @@ public sealed class RobotScenarioAnimationService
         }
     }
 
-    public IReadOnlyList<RobotGridAnimationFrame> BuildScenarioFrames(Grid grid, RobotScenarioViewModel scenario)
+    public IEnumerable<RobotGridAnimationFrame> BuildScenarioFrames(Grid grid, RobotScenarioViewModel scenario)
     {
         ArgumentNullException.ThrowIfNull(grid);
         ArgumentNullException.ThrowIfNull(scenario);
 
-        scenario.Frames.Clear();
-        scenario.Frames.AddRange(_frameGenerator.BuildFrames(
+        return _frameGenerator.BuildFrames(
             grid,
             scenario.StartRobot,
             scenario.Instructions,
-            resetGrid: false));
-
-        return scenario.Frames;
+            resetGrid: false);
     }
 }

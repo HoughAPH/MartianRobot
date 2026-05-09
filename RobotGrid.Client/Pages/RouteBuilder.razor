@@ -1,5 +1,7 @@
 @page "/route-builder"
+@using MartianRobot.Models
 @using global::RobotGrid.Client.Services
+@inject NavigationManager NavigationManager
 
 <PageTitle>Route Builder</PageTitle>
 
@@ -89,8 +91,22 @@
             </div>
 
             <div class="mb-2">
+                <strong>Heading:</strong>
+                <span class="ms-1">@(Result?.CurrentHeading.ToString() ?? string.Empty)</span>
+            </div>
+
+            <div class="mb-2">
                 <strong>Instruction String:</strong>
                 <span class="font-monospace ms-1">@(Result?.Instructions ?? string.Empty)</span>
+            </div>
+
+            <div class="d-flex flex-wrap gap-2 mb-2">
+                <button type="button"
+                        class="btn btn-sm btn-primary"
+                        @onclick="RunGeneratedScenario"
+                        disabled="@(Result is null)">
+                    Run in Scenario Runner
+                </button>
             </div>
 
             <div class="small text-muted">
@@ -146,8 +162,11 @@
             ErrorMessage = "Choose a neighboring cell, including diagonals.";
             return;
         }
+
         if (!RouteCells.Contains(cell))
+        {
             RouteCells.Add(cell);
+        }
 
         Recalculate();
     }
@@ -171,6 +190,29 @@
             Result = null;
             ErrorMessage = ex.Message;
         }
+    }
+
+    private void RunGeneratedScenario()
+    {
+        if (Result is null)
+        {
+            return;
+        }
+
+        var uri = NavigationManager.GetUriWithQueryParameters(
+            $"{NavigationManager.BaseUri.TrimEnd('/')}/robot-scenario-runner",
+            new Dictionary<string, object?>
+            {
+                ["width"] = Width,
+                ["height"] = Height,
+                ["startX"] = Result.StartX,
+                ["startY"] = Result.StartY,
+                ["heading"] = Result.StartHeading.ToString(),
+                ["instructions"] = Result.Instructions,
+                ["autorun"] = true
+            });
+
+        NavigationManager.NavigateTo(uri);
     }
 
     private bool IsAdjacent((int X, int Y) from, (int X, int Y) to)
