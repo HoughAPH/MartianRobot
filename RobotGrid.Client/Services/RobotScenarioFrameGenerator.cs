@@ -1,3 +1,4 @@
+using MartianRobot.Commands;
 using MartianRobot.Models;
 using MartianRobot.Services;
 
@@ -22,13 +23,13 @@ public sealed class RobotScenarioFrameGenerator
             grid.Reset();
         }
 
-        var normalizedInstructions = instructions.ToUpperInvariant();
-        var currentRobot = CloneRobot(startRobot);
+        string normalizedInstructions = instructions.ToUpperInvariant();
+        Robot currentRobot = CloneRobot(startRobot);
         HashSet<(int X, int Y)> visitedPositions = [];
 
         TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
-        var statusLabel = normalizedInstructions.Length == 0 ? "Final" : "Current";
+        string statusLabel = normalizedInstructions.Length == 0 ? "Final" : "Current";
 
         return CreateFrame(
             grid,
@@ -54,13 +55,13 @@ public sealed class RobotScenarioFrameGenerator
             grid.Reset();
         }
 
-        var normalizedInstructions = instructions.ToUpperInvariant();
-        var currentRobot = CloneRobot(startRobot);
-        var executor = new RobotInstructionExecutor(grid);
+        string normalizedInstructions = instructions.ToUpperInvariant();
+        Robot currentRobot = CloneRobot(startRobot);
+        RobotInstructionExecutor executor = new(grid);
         HashSet<(int X, int Y)> visitedPositions = [];
 
         TrackVisitedPosition(currentRobot, grid, visitedPositions);
-        //this return a yield frame instead of adding to a list of frames
+
         yield return CreateFrame(
             grid,
             startRobot,
@@ -74,23 +75,24 @@ public sealed class RobotScenarioFrameGenerator
             yield break;
         }
 
-        for (var i = 0; i < normalizedInstructions.Length; i++)
+        for (int i = 0; i < normalizedInstructions.Length; i++)
         {
             if (currentRobot.IsLost)
             {
                 yield break;
             }
 
-            var command = normalizedInstructions[i];
+            char commandSymbol = normalizedInstructions[i];
 
-            if (!executor.TryExecuteCommand(currentRobot, command))
+            if (!executor.TryExecuteCommand(currentRobot, commandSymbol, out IRobotInstructionCommand? command))
             {
-                throw new ArgumentException($"Invalid command: {command}. Only F, L, and R are allowed.");
+                throw new ArgumentException(
+                    $"Invalid command: {commandSymbol}. Only {executor.AllowedCommandsText} are allowed.");
             }
 
             TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
-            var isFinalFrame = currentRobot.IsLost || i == normalizedInstructions.Length - 1;
+            bool isFinalFrame = currentRobot.IsLost || i == normalizedInstructions.Length - 1;
 
             yield return CreateFrame(
                 grid,
@@ -98,7 +100,8 @@ public sealed class RobotScenarioFrameGenerator
                 normalizedInstructions,
                 currentRobot,
                 visitedPositions,
-                isFinalFrame ? "Final" : "Current");
+                isFinalFrame ? "Final" : "Current",
+                BuildCommandDescription(command));
         }
     }
 
@@ -108,7 +111,8 @@ public sealed class RobotScenarioFrameGenerator
         string instructions,
         Robot currentRobot,
         HashSet<(int X, int Y)> visitedPositions,
-        string statusLabel)
+        string statusLabel,
+        string? currentCommandDescription = null)
     {
         return new RobotGridAnimationFrame(
             RobotGridTextRenderer.BuildGridText(
@@ -119,7 +123,13 @@ public sealed class RobotScenarioFrameGenerator
                 currentRobot,
                 grid.LostPositions,
                 visitedPositions,
-                statusLabel));
+                statusLabel,
+                currentCommandDescription));
+    }
+
+    private static string BuildCommandDescription(IRobotInstructionCommand command)
+    {
+        return $"{command.Symbol}: {command.CommandText}";
     }
 
     private static Robot CloneRobot(Robot robot)
@@ -135,8 +145,8 @@ public sealed class RobotScenarioFrameGenerator
         Grid grid,
         HashSet<(int X, int Y)> visitedPositions)
     {
-        var x = robot.Position.X;
-        var y = robot.Position.Y;
+        int x = robot.Position.X;
+        int y = robot.Position.Y;
 
         if (x < 0 || x > grid.Width || y < 0 || y > grid.Height)
         {

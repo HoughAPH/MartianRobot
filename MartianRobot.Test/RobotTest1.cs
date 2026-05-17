@@ -16,7 +16,7 @@ public class RobotTest1
     [Fact]
     public void Robot_Initializes_Correctly()
     {
-        var robot = new Robot(1, 2, Heading.East);
+        Robot robot = new(1, 2, Heading.East);
 
         Assert.Equal(new Position(1, 2), robot.Position);
         Assert.Equal(Heading.East, robot.Heading);
@@ -26,8 +26,8 @@ public class RobotTest1
     [Fact]
     public void Robot_Throws_On_Invalid_Starting_Position()
     {
-        var robot = new Robot(-1, 0, Heading.North);
-        var executor = new RobotInstructionExecutor(_grid);
+        Robot robot = new(-1, 0, Heading.North);
+        RobotInstructionExecutor executor = new(_grid);
 
         Assert.Throws<ArgumentException>(() => executor.Execute(robot, ""));
     }
@@ -35,8 +35,8 @@ public class RobotTest1
     [Fact]
     public void RobotInstructionExecutor_Executes_Valid_Instruction_Sequence()
     {
-        var robot = new Robot(1, 1, Heading.East);
-        var executor = new RobotInstructionExecutor(_grid);
+        Robot robot = new(1, 1, Heading.East);
+        RobotInstructionExecutor executor = new(_grid);
 
         executor.Execute(robot, "RFRFRFRF");
 
@@ -48,8 +48,8 @@ public class RobotTest1
     [Fact]
     public void TurnRightCommand_Changes_Heading()
     {
-        var robot = new Robot(0, 0, Heading.North);
-        var command = new TurnRightCommand();
+        Robot robot = new(0, 0, Heading.North);
+        TurnRightCommand command = new();
 
         command.Execute(robot, _grid);
 
@@ -59,8 +59,8 @@ public class RobotTest1
     [Fact]
     public void TurnLeftCommand_Changes_Heading()
     {
-        var robot = new Robot(0, 0, Heading.North);
-        var command = new TurnLeftCommand();
+        Robot robot = new(0, 0, Heading.North);
+        TurnLeftCommand command = new();
 
         command.Execute(robot, _grid);
 
@@ -70,8 +70,8 @@ public class RobotTest1
     [Fact]
     public void MoveForwardCommand_Updates_Position()
     {
-        var robot = new Robot(2, 2, Heading.North);
-        var command = new MoveForwardCommand();
+        Robot robot = new(2, 2, Heading.North);
+        MoveForwardCommand command = new();
 
         command.Execute(robot, _grid);
 
@@ -81,8 +81,8 @@ public class RobotTest1
     [Fact]
     public void RobotInstructionExecutor_Throws_On_Invalid_Instruction()
     {
-        var robot = new Robot(1, 1, Heading.North);
-        var executor = new RobotInstructionExecutor(_grid);
+        Robot robot = new(1, 1, Heading.North);
+        RobotInstructionExecutor executor = new(_grid);
 
         Assert.Throws<ArgumentException>(() => executor.Execute(robot, "FX"));
     }
@@ -90,8 +90,8 @@ public class RobotTest1
     [Fact]
     public void RobotInstructionExecutor_Throws_On_Too_Long_Instruction()
     {
-        var robot = new Robot(1, 1, Heading.North);
-        var executor = new RobotInstructionExecutor(_grid);
+        Robot robot = new(1, 1, Heading.North);
+        RobotInstructionExecutor executor = new(_grid);
         string longInstructions = new('F', 101);
 
         Assert.Throws<ArgumentException>(() => executor.Execute(robot, longInstructions));
@@ -100,16 +100,16 @@ public class RobotTest1
     [Fact]
     public void MoveForwardCommand_Off_Grid_Sets_IsLost_And_Scents_Position()
     {
-        var grid = new Grid(2, 2);
+        Grid grid = new(2, 2);
 
-        var robot = new Robot(2, 2, Heading.North);
-        var command = new MoveForwardCommand();
+        Robot robot = new(2, 2, Heading.North);
+        MoveForwardCommand command = new();
 
         command.Execute(robot, grid);
 
         Assert.True(robot.IsLost);
 
-        var robot2 = new Robot(2, 2, Heading.North);
+        Robot robot2 = new(2, 2, Heading.North);
         command.Execute(robot2, grid);
 
         Assert.False(robot2.IsLost);
@@ -119,8 +119,8 @@ public class RobotTest1
     [Fact]
     public void TurnLeftCommand_Wraps_Around_Correctly()
     {
-        var robot = new Robot(1, 1, Heading.North);
-        var command = new TurnLeftCommand();
+        Robot robot = new(1, 1, Heading.North);
+        TurnLeftCommand command = new();
 
         command.Execute(robot, _grid);
         Assert.Equal(Heading.West, robot.Heading);
@@ -138,15 +138,15 @@ public class RobotTest1
     [Fact]
     public void MoveForwardCommand_Does_Not_Change_Position_If_Scented()
     {
-        var grid = new Grid(1, 1);
+        Grid grid = new(1, 1);
 
-        var robot = new Robot(1, 1, Heading.North);
-        var command = new MoveForwardCommand();
+        Robot robot = new(1, 1, Heading.North);
+        MoveForwardCommand command = new();
 
         command.Execute(robot, grid);
         Assert.True(robot.IsLost);
 
-        var robot2 = new Robot(1, 1, Heading.North);
+        Robot robot2 = new(1, 1, Heading.North);
         command.Execute(robot2, grid);
 
         Assert.False(robot2.IsLost);

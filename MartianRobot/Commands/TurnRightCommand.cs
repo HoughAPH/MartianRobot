@@ -5,6 +5,7 @@ namespace MartianRobot.Commands;
 public class TurnRightCommand : IRobotInstructionCommand
 {
     public char Symbol => 'R';
+    public string CommandText => "Turn Right";
 
     public void Execute(Robot robot, Grid grid)
     {

@@ -13,16 +13,16 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("At least two route cells are required.");
         }
 
-        var (X, Y) = routeCells[0];
+        (int X, int Y) = routeCells[0];
         Heading? startHeading = null;
         Heading? currentHeading = null;
         List<char> instructions = [];
 
-        for (var i = 1; i < routeCells.Count; i++)
+        for (int i = 1; i < routeCells.Count; i++)
         {
-            var step = GetStepDelta(routeCells[i - 1], routeCells[i]);
-            var isOrthogonal = IsOrthogonalStep(step.Dx, step.Dy);
-            var isDiagonal = !isOrthogonal && IsDiagonalStep(step.Dx, step.Dy);
+            (int Dx, int Dy) step = GetStepDelta(routeCells[i - 1], routeCells[i]);
+            bool isOrthogonal = IsOrthogonalStep(step.Dx, step.Dy);
+            bool isDiagonal = !isOrthogonal && IsDiagonalStep(step.Dx, step.Dy);
 
             if (i == 1 && !isOrthogonal)
             {
@@ -31,7 +31,7 @@ public static class RouteToInstructionConverter
 
             if (isOrthogonal)
             {
-                var targetHeading = GetHeadingFromOrthogonalStep(step.Dx, step.Dy);
+                Heading targetHeading = GetHeadingFromOrthogonalStep(step.Dx, step.Dy);
 
                 if (i == 1)
                 {
@@ -94,10 +94,10 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("The grid must contain at least one cell.");
         }
 
-        var height = cells.Length;
-        var width = cells[0].Length;
+        int height = cells.Length;
+        int width = cells[0].Length;
 
-        for (var row = 1; row < height; row++)
+        for (int row = 1; row < height; row++)
         {
             if (cells[row].Length != width)
             {
@@ -107,11 +107,11 @@ public static class RouteToInstructionConverter
 
         Dictionary<(int Col, int Row), Heading> arrows = [];
 
-        for (var row = 0; row < height; row++)
+        for (int row = 0; row < height; row++)
         {
-            for (var col = 0; col < width; col++)
+            for (int col = 0; col < width; col++)
             {
-                var value = NormalizeCell(cells[row][col]);
+                char? value = NormalizeCell(cells[row][col]);
 
                 if (value is null)
                 {
@@ -127,13 +127,13 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("Enter at least one arrow in the grid.");
         }
 
-        var incomingCounts = arrows.Keys.ToDictionary(key => key, _ => 0);
+        Dictionary<(int Col, int Row), int> incomingCounts = arrows.Keys.ToDictionary(key => key, _ => 0);
 
-        foreach (var arrow in arrows)
+        foreach (KeyValuePair<(int Col, int Row), Heading> arrow in arrows)
         {
-            var next = Step(arrow.Key, arrow.Value);
+            (int Col, int Row) next = Step(arrow.Key, arrow.Value);
 
-            if (incomingCounts.TryGetValue(next, out var incomingCount))
+            if (incomingCounts.TryGetValue(next, out int incomingCount))
             {
                 incomingCounts[next] = incomingCount + 1;
             }
@@ -141,7 +141,7 @@ public static class RouteToInstructionConverter
 
         (int Col, int Row)? start = null;
 
-        foreach (var entry in incomingCounts)
+        foreach (KeyValuePair<(int Col, int Row), int> entry in incomingCounts)
         {
             if (entry.Value != 0)
             {
@@ -164,9 +164,9 @@ public static class RouteToInstructionConverter
         HashSet<(int Col, int Row)> visited = [];
         List<Heading> path = [];
 
-        var current = start.Value;
+        (int Col, int Row) current = start.Value;
 
-        while (arrows.TryGetValue(current, out var heading))
+        while (arrows.TryGetValue(current, out Heading heading))
         {
             if (!visited.Add(current))
             {
@@ -182,8 +182,8 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("The route must be a single continuous path.");
         }
 
-        var instructions = BuildInstructions(path);
-        var test = path[0];
+        string instructions = BuildInstructions(path);
+        Heading test = path[0];
 
         return new RouteConversionResult(
             StartX: start.Value.Col,
@@ -201,11 +201,11 @@ public static class RouteToInstructionConverter
         }
 
         List<char> instructions = ['F'];
-        var currentHeading = path[0];
+        Heading currentHeading = path[0];
 
-        for (var i = 1; i < path.Count; i++)
+        for (int i = 1; i < path.Count; i++)
         {
-            var targetHeading = path[i];
+            Heading targetHeading = path[i];
             AppendTurnCommands(instructions, currentHeading, targetHeading);
             instructions.Add('F');
             currentHeading = targetHeading;
@@ -250,9 +250,9 @@ public static class RouteToInstructionConverter
 
     private static void AppendTurnCommands(List<char> instructions, Heading current, Heading target)
     {
-        var currentIndex = ToIndex(current);
-        var targetIndex = ToIndex(target);
-        var delta = (targetIndex - currentIndex + 4) % 4;
+        int currentIndex = ToIndex(current);
+        int targetIndex = ToIndex(target);
+        int delta = (targetIndex - currentIndex + 4) % 4;
 
         switch (delta)
         {
@@ -284,8 +284,8 @@ public static class RouteToInstructionConverter
 
     private static (int Dx, int Dy) GetStepDelta((int X, int Y) from, (int X, int Y) to)
     {
-        var dx = to.X - from.X;
-        var dy = to.Y - from.Y;
+        int dx = to.X - from.X;
+        int dy = to.Y - from.Y;
 
         if (Math.Abs(dx) > 1 || Math.Abs(dy) > 1 || (dx == 0 && dy == 0))
         {

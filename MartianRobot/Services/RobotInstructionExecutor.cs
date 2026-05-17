@@ -30,6 +30,8 @@ public class RobotInstructionExecutor
         _commands = commands.ToDictionary(command => command.Symbol);
     }
 
+    public string AllowedCommandsText => string.Join(", ", _commands.Keys.Order());
+
     public void Execute(Robot robot, string instructions)
     {
         ArgumentNullException.ThrowIfNull(robot);
@@ -55,18 +57,31 @@ public class RobotInstructionExecutor
             if (!_commands.TryGetValue(commandSymbol, out IRobotInstructionCommand? command))
             {
                 throw new ArgumentException(
-                    $"Invalid command: {commandSymbol}. Only {string.Join(", ", _commands.Keys.Order())} are allowed.");
+                    $"Invalid command: {commandSymbol}. Only {AllowedCommandsText} are allowed.");
             }
 
             command.Execute(robot, _grid);
         }
     }
 
+    public bool TryGetCommand(char commandSymbol, out IRobotInstructionCommand? command)
+    {
+        return _commands.TryGetValue(char.ToUpperInvariant(commandSymbol), out command);
+    }
+
     public bool TryExecuteCommand(Robot robot, char commandSymbol)
+    {
+        return TryExecuteCommand(robot, commandSymbol, out _);
+    }
+
+    public bool TryExecuteCommand(
+        Robot robot,
+        char commandSymbol,
+        out IRobotInstructionCommand? command)
     {
         ArgumentNullException.ThrowIfNull(robot);
 
-        if (!_commands.TryGetValue(commandSymbol, out var command))
+        if (!TryGetCommand(commandSymbol, out command))
         {
             return false;
         }

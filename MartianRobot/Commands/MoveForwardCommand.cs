@@ -5,13 +5,13 @@ namespace MartianRobot.Commands;
 public class MoveForwardCommand : IRobotInstructionCommand
 {
     public char Symbol => 'F';
-
+    public string CommandText => "Move Forward";
     public void Execute(Robot robot, Grid grid)
     {
         ArgumentNullException.ThrowIfNull(robot);
         ArgumentNullException.ThrowIfNull(grid);
 
-        var (newX, newY) = robot.Heading switch
+        (int newX, int newY) = robot.Heading switch
         {
             Heading.North => (robot.Position.X, robot.Position.Y + 1),
             Heading.South => (robot.Position.X, robot.Position.Y - 1),

@@ -5,13 +5,13 @@ namespace MartianRobot.Commands;
 public class MoveDiagonalRightCommand : IRobotInstructionCommand
 {
     public char Symbol => 'E';
-
+    public string CommandText => "Move Diagonal Right";
     public void Execute(Robot robot, Grid grid)
     {
         ArgumentNullException.ThrowIfNull(robot);
         ArgumentNullException.ThrowIfNull(grid);
 
-        var (newX, newY) = robot.Heading switch
+        (int newX, int newY) = robot.Heading switch
         {
             Heading.North => (robot.Position.X + 1, robot.Position.Y + 1),
             Heading.East => (robot.Position.X + 1, robot.Position.Y - 1),

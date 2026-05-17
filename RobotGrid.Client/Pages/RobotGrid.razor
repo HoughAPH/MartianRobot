@@ -18,7 +18,7 @@
 
         <div class="card-body">
             <div class="d-flex gap-2 mb-3">
-                <button class="btn btn-primary" @onclick="StartAnimation" disabled="@IsAnimating">
+                <button class="btn btn-primary" @onclick="AnimateScenarios" disabled="@IsAnimating">
                     Animate All Robots
                 </button>
             </div>
@@ -57,7 +57,7 @@
         _scenarioAnimationService.ResetScenarios(_grid, Scenarios);
     }
 
-    private async Task StartAnimation()
+    private async Task AnimateScenarios()
     {
         IsAnimating = true;
 

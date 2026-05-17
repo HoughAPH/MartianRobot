@@ -11,9 +11,9 @@ public sealed class RobotScenarioAnimationService
     {
         return
         [
-            new("Robot 1", new Robot(1, 1, Heading.East), "RFRFRFRF"),
-            new("Robot 2", new Robot(3, 2, Heading.North), "FRRFLLFFRRFLL"),
-            new("Robot 3", new Robot(0, 3, Heading.West), "LLFFFLFLFL")
+            new("Robot 1", new Robot(1, 1, Heading.East), "RFRFRFRF", ""),
+            new("Robot 2", new Robot(3, 2, Heading.North), "FRRFLLFFRRFLL", ""),
+            new("Robot 3", new Robot(0, 3, Heading.West), "LLFFFLFLFL", "")
         ];
     }
 
@@ -24,7 +24,7 @@ public sealed class RobotScenarioAnimationService
 
         grid.Reset();
 
-        foreach (var scenario in scenarios)
+        foreach (RobotScenarioViewModel scenario in scenarios)
         {
             scenario.GridText = _frameGenerator.BuildInitialFrame(
                 grid,
@@ -44,5 +44,30 @@ public sealed class RobotScenarioAnimationService
             scenario.StartRobot,
             scenario.Instructions,
             resetGrid: false);
+    }
+
+    public IEnumerable<RobotGridAnimationFrame> BuildScenarioFrames(Grid grid, RobotScenarioInput input)
+    {
+        ArgumentNullException.ThrowIfNull(grid);
+        ArgumentNullException.ThrowIfNull(input);
+
+        return BuildScenarioFrames(grid, CreateScenario(input));
+    }
+
+    public IEnumerable<RobotGridAnimationFrame> BuildScenarioFrames(RobotScenarioInput input)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+
+        Grid grid = new(input.GridWidth, input.GridHeight);
+        return BuildScenarioFrames(grid, input);
+    }
+
+    private static RobotScenarioViewModel CreateScenario(RobotScenarioInput input)
+    {
+        return new(
+            "Custom Scenario",
+            new Robot(input.StartX, input.StartY, input.Heading),
+            input.Instructions,
+            "");
     }
 }

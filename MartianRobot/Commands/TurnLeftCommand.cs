@@ -5,7 +5,7 @@ namespace MartianRobot.Commands;
 public class TurnLeftCommand : IRobotInstructionCommand
 {
     public char Symbol => 'L';
-
+    public string CommandText => "Turn Left";
     public void Execute(Robot robot, Grid grid)
     {
         ArgumentNullException.ThrowIfNull(robot);
