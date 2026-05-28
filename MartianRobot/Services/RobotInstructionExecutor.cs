@@ -5,19 +5,13 @@ namespace MartianRobot.Services;
 
 public class RobotInstructionExecutor
 {
+    private static readonly IReadOnlyList<IRobotInstructionCommand> AvailableCommands = LoadCommands();
+
     private readonly Grid _grid;
     private readonly IReadOnlyDictionary<char, IRobotInstructionCommand> _commands;
 
     public RobotInstructionExecutor(Grid grid)
-        : this(
-            grid,
-            [
-                new MoveForwardCommand(),
-                new MoveDiagonalLeftCommand(),
-                new MoveDiagonalRightCommand(),
-                new TurnLeftCommand(),
-                new TurnRightCommand()
-            ])
+        : this(grid, AvailableCommands)
     {
     }
 
@@ -69,10 +63,10 @@ public class RobotInstructionExecutor
         return _commands.TryGetValue(char.ToUpperInvariant(commandSymbol), out command);
     }
 
-    public bool TryExecuteCommand(Robot robot, char commandSymbol)
-    {
-        return TryExecuteCommand(robot, commandSymbol, out _);
-    }
+    //public bool TryExecuteCommand(Robot robot, char commandSymbol)
+    //{
+    //    return TryExecuteCommand(robot, commandSymbol, out _);
+    //}
 
     public bool TryExecuteCommand(
         Robot robot,
@@ -88,5 +82,39 @@ public class RobotInstructionExecutor
 
         command.Execute(robot, _grid);
         return true;
+    }
+
+    private static IReadOnlyList<IRobotInstructionCommand> LoadCommands()
+    {
+        Type[] commandTypes = [.. typeof(IRobotInstructionCommand).Assembly
+            .GetTypes()
+            .Where(type =>
+                typeof(IRobotInstructionCommand).IsAssignableFrom(type) &&
+                !type.IsInterface &&
+                !type.IsAbstract &&
+                type.GetConstructor(Type.EmptyTypes) is not null)
+            .OrderBy(type => type.Name)];
+
+        IRobotInstructionCommand[] commands = [.. commandTypes.Select(type => (IRobotInstructionCommand)Activator.CreateInstance(type)!)];
+
+        ValidateUniqueSymbols(commands);
+
+        return commands;
+    }
+
+    private static void ValidateUniqueSymbols(IEnumerable<IRobotInstructionCommand> commands)
+    {
+        char[] duplicateSymbols = commands
+            .GroupBy(command => char.ToUpperInvariant(command.Symbol))
+            .Where(group => group.Count() > 1)
+            .Select(group => group.Key)
+            .Order()
+            .ToArray();
+
+        if (duplicateSymbols.Length > 0)
+        {
+            throw new InvalidOperationException(
+                $"Duplicate robot instruction symbols found: {string.Join(", ", duplicateSymbols)}.");
+        }
     }
 }
