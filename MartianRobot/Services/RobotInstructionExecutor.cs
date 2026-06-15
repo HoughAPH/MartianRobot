@@ -75,7 +75,7 @@ public class RobotInstructionExecutor
     {
         ArgumentNullException.ThrowIfNull(robot);
 
-        if (!TryGetCommand(commandSymbol, out command))
+        if (!TryGetCommand(commandSymbol, out command) || command is null)
         {
             return false;
         }

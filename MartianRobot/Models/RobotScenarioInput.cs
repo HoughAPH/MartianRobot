@@ -22,7 +22,7 @@ public sealed class RobotScenarioInput : IValidatableObject
 
     [Required]
     [StringLength(100)]
-    [RegularExpression("^[FLRQE]*$", ErrorMessage = "Use only F, L, R, Q, and E.")]
+    [RegularExpression("^[FLRQP]*$", ErrorMessage = "Use only F, L, R, Q, and P.")]
     public string Instructions
     {
         get => _instructions;

@@ -84,7 +84,7 @@ public sealed class RobotScenarioFrameGenerator
 
             char commandSymbol = normalizedInstructions[i];
 
-            if (!executor.TryExecuteCommand(currentRobot, commandSymbol, out IRobotInstructionCommand? command))
+            if (!executor.TryExecuteCommand(currentRobot, commandSymbol, out IRobotInstructionCommand? command) || command is null)
             {
                 throw new ArgumentException(
                     $"Invalid command: {commandSymbol}. Only {executor.AllowedCommandsText} are allowed.");

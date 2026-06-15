@@ -84,7 +84,7 @@ The following rules were made because it is not practical to input the heading f
 - the first move must be orthogonal
 - diagonal moves are treated as relative moves from the current heading:
   - diagonal-left = `Q`
-  - diagonal-right = `E`
+  - diagonal-right = `P`
 
 Because diagonal movement is interpreted relative to the robot's current heading rather than as a separate absolute heading, 
 the route converter assumes the robot starts facing north, requires the first move to establish orientation with an orthogonal step, 

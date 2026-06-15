@@ -62,7 +62,7 @@ public static class RouteToInstructionConverter
 
                 if (MatchesDiagonalRight(currentHeading.Value, step.Dx, step.Dy))
                 {
-                    instructions.Add('E');
+                    instructions.Add('P');
                     continue;
                 }
 
@@ -85,144 +85,36 @@ public static class RouteToInstructionConverter
             Instructions: new string([.. instructions]));
     }
 
-    public static RouteConversionResult Convert(string[][] cells)
-    {
-        ArgumentNullException.ThrowIfNull(cells);
+    //private static string BuildInstructions(List<Heading> path)
+    //{
+    //    if (path.Count == 0)
+    //    {
+    //        throw new ArgumentException("The route must contain at least one movement.");
+    //    }
 
-        if (cells.Length == 0 || cells[0].Length == 0)
-        {
-            throw new ArgumentException("The grid must contain at least one cell.");
-        }
+    //    List<char> instructions = ['F'];
+    //    Heading currentHeading = path[0];
 
-        int height = cells.Length;
-        int width = cells[0].Length;
+    //    for (int i = 1; i < path.Count; i++)
+    //    {
+    //        Heading targetHeading = path[i];
+    //        AppendTurnCommands(instructions, currentHeading, targetHeading);
+    //        instructions.Add('F');
+    //        currentHeading = targetHeading;
+    //    }
 
-        for (int row = 1; row < height; row++)
-        {
-            if (cells[row].Length != width)
-            {
-                throw new ArgumentException("All grid rows must have the same width.");
-            }
-        }
+    //    return new string(instructions.ToArray());
+    //}
 
-        Dictionary<(int Col, int Row), Heading> arrows = [];
+    //private static char? NormalizeCell(string? value)
+    //{
+    //    if (string.IsNullOrWhiteSpace(value))
+    //    {
+    //        return null;
+    //    }
 
-        for (int row = 0; row < height; row++)
-        {
-            for (int col = 0; col < width; col++)
-            {
-                char? value = NormalizeCell(cells[row][col]);
-
-                if (value is null)
-                {
-                    continue;
-                }
-
-                arrows[(col, row)] = ParseHeading(value.Value);
-            }
-        }
-
-        if (arrows.Count == 0)
-        {
-            throw new ArgumentException("Enter at least one arrow in the grid.");
-        }
-
-        Dictionary<(int Col, int Row), int> incomingCounts = arrows.Keys.ToDictionary(key => key, _ => 0);
-
-        foreach (KeyValuePair<(int Col, int Row), Heading> arrow in arrows)
-        {
-            (int Col, int Row) next = Step(arrow.Key, arrow.Value);
-
-            if (incomingCounts.TryGetValue(next, out int incomingCount))
-            {
-                incomingCounts[next] = incomingCount + 1;
-            }
-        }
-
-        (int Col, int Row)? start = null;
-
-        foreach (KeyValuePair<(int Col, int Row), int> entry in incomingCounts)
-        {
-            if (entry.Value != 0)
-            {
-                continue;
-            }
-
-            if (start is not null)
-            {
-                throw new ArgumentException("The route must have exactly one start cell.");
-            }
-
-            start = entry.Key;
-        }
-
-        if (start is null)
-        {
-            throw new ArgumentException("The route must have exactly one start cell.");
-        }
-
-        HashSet<(int Col, int Row)> visited = [];
-        List<Heading> path = [];
-
-        (int Col, int Row) current = start.Value;
-
-        while (arrows.TryGetValue(current, out Heading heading))
-        {
-            if (!visited.Add(current))
-            {
-                throw new ArgumentException("The route contains a loop.");
-            }
-
-            path.Add(heading);
-            current = Step(current, heading);
-        }
-
-        if (visited.Count != arrows.Count)
-        {
-            throw new ArgumentException("The route must be a single continuous path.");
-        }
-
-        string instructions = BuildInstructions(path);
-        Heading test = path[0];
-
-        return new RouteConversionResult(
-            StartX: start.Value.Col,
-            StartY: height - 1 - start.Value.Row,
-            StartHeading: path[0],
-            CurrentHeading: path[^1],
-            Instructions: instructions);
-    }
-
-    private static string BuildInstructions(List<Heading> path)
-    {
-        if (path.Count == 0)
-        {
-            throw new ArgumentException("The route must contain at least one movement.");
-        }
-
-        List<char> instructions = ['F'];
-        Heading currentHeading = path[0];
-
-        for (int i = 1; i < path.Count; i++)
-        {
-            Heading targetHeading = path[i];
-            AppendTurnCommands(instructions, currentHeading, targetHeading);
-            instructions.Add('F');
-            currentHeading = targetHeading;
-        }
-
-        return new string(instructions.ToArray());
-    }
-
-    private static char? NormalizeCell(string? value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return null;
-        }
-
-        return value.Trim()[0];
-    }
+    //    return value.Trim()[0];
+    //}
 
     private static Heading ParseHeading(char value)
     {
@@ -236,23 +128,23 @@ public static class RouteToInstructionConverter
         };
     }
 
-    private static (int Col, int Row) Step((int Col, int Row) current, Heading heading)
-    {
-        return heading switch
-        {
-            Heading.North => (current.Col, current.Row - 1),
-            Heading.East => (current.Col + 1, current.Row),
-            Heading.South => (current.Col, current.Row + 1),
-            Heading.West => (current.Col - 1, current.Row),
-            _ => throw new ArgumentOutOfRangeException(nameof(heading))
-        };
-    }
-
+    //private static (int Col, int Row) Step((int Col, int Row) current, Heading heading)
+    //{
+    //    return heading switch
+    //    {
+    //        Heading.North => (current.Col, current.Row - 1),
+    //        Heading.East => (current.Col + 1, current.Row),
+    //        Heading.South => (current.Col, current.Row + 1),
+    //        Heading.West => (current.Col - 1, current.Row),
+    //        _ => throw new ArgumentOutOfRangeException(nameof(heading))
+    //    };
+    //}
+    //This method add implied turn commands to the instructions list based on the current and target headings.
     private static void AppendTurnCommands(List<char> instructions, Heading current, Heading target)
     {
         int currentIndex = ToIndex(current);
         int targetIndex = ToIndex(target);
-        int delta = (targetIndex - currentIndex + 4) % 4;
+        int delta = (targetIndex - currentIndex + 4) % 4;  //Cycles clockwise or anti clockwise through N, E, S, W
 
         switch (delta)
         {

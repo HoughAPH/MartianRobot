@@ -4,7 +4,7 @@ namespace MartianRobot.Commands;
 
 public class MoveDiagonalRightCommand : IRobotInstructionCommand
 {
-    public char Symbol => 'E';
+    public char Symbol => 'P';
     public string CommandText => "Move Diagonal Right";
     public void Execute(Robot robot, Grid grid)
     {

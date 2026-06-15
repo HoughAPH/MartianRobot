@@ -11,9 +11,9 @@ public sealed class RobotScenarioAnimationService
     {
         return
         [
-            new("Robot 1", new Robot(1, 1, Heading.East), "RFRFRFRF", ""),
-            new("Robot 2", new Robot(3, 2, Heading.North), "FRRFLLFFRRFLL", ""),
-            new("Robot 3", new Robot(0, 3, Heading.West), "LLFFFLFLFL", "")
+            new("Robot 1", new Robot(1, 1, Heading.East), "RFRFRFRF"),
+            new("Robot 2", new Robot(3, 2, Heading.North), "FRRFLLFFRRFLL"),
+            new("Robot 3", new Robot(0, 3, Heading.West), "LLFFFLFLFL")
         ];
     }
 
@@ -67,7 +67,6 @@ public sealed class RobotScenarioAnimationService
         return new(
             "Custom Scenario",
             new Robot(input.StartX, input.StartY, input.Heading),
-            input.Instructions,
-            "");
+            input.Instructions);
     }
 }
