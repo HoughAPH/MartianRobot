@@ -7,7 +7,7 @@ public sealed class RobotScenarioAnimationService
 {
     private readonly RobotScenarioFrameGenerator _frameGenerator = new();
 
-    public List<RobotScenarioViewModel> CreateDefaultScenarios()
+    public static List<RobotScenarioViewModel> CreateDefaultScenarios()
     {
         return
         [
@@ -26,11 +26,11 @@ public sealed class RobotScenarioAnimationService
 
         foreach (RobotScenarioViewModel scenario in scenarios)
         {
-            scenario.GridText = _frameGenerator.BuildInitialFrame(
+            scenario.CurrentFrame = _frameGenerator.BuildInitialFrame(
                 grid,
                 scenario.StartRobot,
                 scenario.Instructions,
-                resetGrid: false).GridText;
+                resetGrid: false);
         }
     }
 

@@ -1,0 +1,80 @@
+/* CSS for HTMLGrid component */
+
+.html-grid__details {
+    display: grid;
+    gap: 0.35rem;
+    margin-bottom: 0.75rem;
+    color: #212529;
+}
+
+.html-grid__instructions {
+    margin-left: 0.35rem;
+    font-family: var(--bs-font-monospace);
+    word-break: break-all;
+}
+
+.html-grid__wrapper {
+    max-width: 100%;
+    overflow: auto;
+}
+
+.html-grid {
+    border-collapse: separate;
+    border-spacing: 0.25rem;
+}
+
+.html-grid__td {
+    padding: 0;
+}
+
+.html-grid__cell {
+    position: relative;
+    width: 3rem;
+    height: 3rem;
+    border: 1px solid #adb5bd;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.html-grid__cell--visited {
+    background-color: #d1e7dd;
+}
+
+.html-grid__cell--current {
+    box-shadow: inset 0 0 0 2px #0d6efd;
+}
+
+.html-grid__arrow {
+    width: 1.4rem;
+    height: 1.4rem;
+    color: #0d6efd;
+    transform-origin: center;
+}
+
+.html-grid__arrow--north {
+    transform: rotate(0deg);
+}
+
+.html-grid__arrow--east {
+    transform: rotate(90deg);
+}
+
+.html-grid__arrow--south {
+    transform: rotate(180deg);
+}
+
+.html-grid__arrow--west {
+    transform: rotate(270deg);
+}
+
+.html-grid__lost-scent {
+    position: absolute;
+    top: 0.1rem;
+    right: 0.2rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #dc3545;
+    line-height: 1;
+}

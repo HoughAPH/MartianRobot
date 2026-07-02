@@ -59,7 +59,7 @@ The app is designed to be extensible. To add new robot commands:
 2. Implement the command's logic in the `Execute` method.
 3. Register the new command in the `RobotInstructionExecutor`.
 
-### Example: Adding a Backward Command
+### Example: Adding a Backward Command (not implemented in this version)
 
 1. Create `BackwardCommand` class.
 
@@ -94,7 +94,7 @@ The project includes unit tests for core functionality, ensuring correct robot m
 
 ## Not included
 - Robots can't move siumultaneously and the biggest grid size is 50x50. (as requested)
-- No example of adding a new movement like Backwords.  
+- No example of adding a new movement like Backwards.  
 
 ## Refactoring Summary
 

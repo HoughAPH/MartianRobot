@@ -9,6 +9,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Services\RobotGridTextRenderer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Remove="Pages\Counter.razor" />
     <Content Remove="Pages\Weather.razor" />
   </ItemGroup>

@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path="README.md" />
+    <File Path="Standards.txt" />
+  </Folder>
+  <Project Path="MartianRobot.Test/MartianRobot.Test.csproj" />
+  <Project Path="MartianRobot/MartianRobot.csproj" />
+  <Project Path="RobotGrid.Client/RobotGrid.Client.csproj" />
+  <Project Path="RobotGrid/RobotGrid.csproj" />
+</Solution>

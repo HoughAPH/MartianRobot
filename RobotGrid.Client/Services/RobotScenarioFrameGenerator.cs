@@ -6,8 +6,6 @@ namespace RobotGrid.Client.Services;
 
 public sealed class RobotScenarioFrameGenerator
 {
-    private readonly RobotGridTextRenderer _renderer = new();
-
     public RobotGridAnimationFrame BuildInitialFrame(
         Grid grid,
         Robot startRobot,
@@ -29,15 +27,13 @@ public sealed class RobotScenarioFrameGenerator
 
         TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
-        string statusLabel = normalizedInstructions.Length == 0 ? "Final" : "Current";
-
         return CreateFrame(
             grid,
-            startRobot,
+            startRobot.Position,
+            startRobot.Heading,
             normalizedInstructions,
             currentRobot,
-            visitedPositions,
-            statusLabel);
+            visitedPositions);
     }
 
     public IEnumerable<RobotGridAnimationFrame> BuildFrames(
@@ -64,11 +60,11 @@ public sealed class RobotScenarioFrameGenerator
 
         yield return CreateFrame(
             grid,
-            startRobot,
+            startRobot.Position,
+            startRobot.Heading,
             normalizedInstructions,
             currentRobot,
-            visitedPositions,
-            normalizedInstructions.Length == 0 ? "Final" : "Current");
+            visitedPositions);
 
         if (normalizedInstructions.Length == 0)
         {
@@ -92,44 +88,35 @@ public sealed class RobotScenarioFrameGenerator
 
             TrackVisitedPosition(currentRobot, grid, visitedPositions);
 
-            bool isFinalFrame = currentRobot.IsLost || i == normalizedInstructions.Length - 1;
-
             yield return CreateFrame(
                 grid,
-                startRobot,
+                startRobot.Position,
+                startRobot.Heading,
                 normalizedInstructions,
                 currentRobot,
-                visitedPositions,
-                isFinalFrame ? "Final" : "Current",
-                BuildCommandDescription(command));
+                visitedPositions);
         }
     }
 
-    private RobotGridAnimationFrame CreateFrame(
+    private static RobotGridAnimationFrame CreateFrame(
         Grid grid,
-        Robot startRobot,
+        Position startPosition,
+        Heading startHeading,
         string instructions,
         Robot currentRobot,
-        HashSet<(int X, int Y)> visitedPositions,
-        string statusLabel,
-        string? currentCommandDescription = null)
+        HashSet<(int X, int Y)> visitedPositions)
     {
         return new RobotGridAnimationFrame(
-            RobotGridTextRenderer.BuildGridText(
-                grid.Width,
-                grid.Height,
-                startRobot,
-                instructions,
-                currentRobot,
-                grid.LostPositions,
-                visitedPositions,
-                statusLabel,
-                currentCommandDescription));
-    }
-
-    private static string BuildCommandDescription(IRobotInstructionCommand command)
-    {
-        return $"{command.Symbol}: {command.CommandText}";
+            grid.Width,
+            grid.Height,
+            startPosition,
+            startHeading,
+            instructions,
+            currentRobot.Position,
+            currentRobot.Heading,
+            currentRobot.IsLost,
+            [.. visitedPositions.Select(position => new Position(position.X, position.Y))],
+            [.. grid.LostPositions.Select(position => new Position(position.X, position.Y))]);
     }
 
     private static Robot CloneRobot(Robot robot)

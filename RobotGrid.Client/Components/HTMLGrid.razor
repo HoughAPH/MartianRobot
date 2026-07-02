@@ -1,0 +1,119 @@
+﻿@using MartianRobot.Models
+
+@if (Frame is not null)
+{
+    <div class="html-grid__details">
+        <div>
+            <strong>Start:</strong> @Frame.StartPosition.ToString()
+            <span class="ms-2"><strong>Initial Heading:</strong> @Frame.StartHeading</span>
+        </div>
+        <div>
+            <strong>Current:</strong> @Frame.CurrentPosition.ToString()
+            <span class="ms-2"><strong>Heading:</strong> @Frame.CurrentHeading</span>
+            @if (Frame.IsLost)
+            {
+                <span class="badge text-bg-danger ms-2">Lost</span>
+            }
+        </div>
+        <div>
+            <strong>Instructions:</strong>
+            <span class="html-grid__instructions">@Frame.Instructions</span>
+        </div>
+    </div>
+
+    <div class="html-grid__wrapper">
+        <table class="html-grid" aria-label="Robot grid">
+            <tbody>
+                @for (var y = Frame.Height; y >= 0; y--)
+                {
+                    <tr>
+                        @for (var x = 0; x <= Frame.Width; x++)
+                        {
+                            var position = new Position(x, y);
+                            var displayNumber = GetStepNumber(x, y);
+                            <td class="html-grid__td">
+                                <div class="@GetCellClass(position)">
+                                    <span class="ms-2">@displayNumber</span>
+                                    @if (HasLostScent(position))
+                                    {
+                                        <span class="html-grid__lost-scent" title="Lost scent">×</span>
+                                    }
+
+                                    @if (IsCurrent(position))
+                                    {
+                                        <svg class="@GetArrowClass()"
+                                             viewBox="0 0 24 24"
+                                             aria-label="Current robot position">
+                                            <path fill="currentColor"
+                                                  d="M12 3L19 15H14V21H10V15H5Z" />
+                                        </svg>
+                                    }
+                                </div>
+                            </td>
+                        }
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public RobotGridAnimationFrame? Frame { get; set; }
+    private List<(int X, int Y)> RouteCells { get; } = [];
+
+    private HashSet<Position> _visitedPositions = [];
+    private HashSet<Position> _lostPositions = [];
+    
+    protected override void OnParametersSet()
+    {
+        _visitedPositions = Frame?.VisitedPositions.ToHashSet() ?? [];
+        _lostPositions = Frame?.LostPositions.ToHashSet() ?? [];
+    }
+
+    private int GetStepNumber(int x, int y)
+    {
+        var index = Frame?.VisitedPositions.ToList().FindIndex(p => p.X == x && p.Y == y) ?? -1;
+        return index >= 0 ? index + 1 : 0;
+    }
+
+    private string GetCellClass(Position position)
+    {
+        List<string> classes = ["html-grid__cell"];
+
+        if (_visitedPositions.Contains(position))
+        {
+            classes.Add("html-grid__cell--visited");
+        }
+
+        if (IsCurrent(position))
+        {
+            classes.Add("html-grid__cell--current");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private bool IsCurrent(Position position)
+    {
+        return Frame is not null && position == Frame.CurrentPosition;
+    }
+
+    private bool HasLostScent(Position position)
+    {
+        return _lostPositions.Contains(position);
+    }
+
+    private string GetArrowClass()
+    {
+        return Frame?.CurrentHeading switch
+        {
+            Heading.North => "html-grid__arrow html-grid__arrow--north",
+            Heading.East => "html-grid__arrow html-grid__arrow--east",
+            Heading.South => "html-grid__arrow html-grid__arrow--south",
+            Heading.West => "html-grid__arrow html-grid__arrow--west",
+            _ => "html-grid__arrow"
+        };
+    }
+}

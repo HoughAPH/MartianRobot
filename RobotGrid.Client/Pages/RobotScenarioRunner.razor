@@ -1,7 +1,5 @@
 @page "/robot-scenario-runner"
-@using MartianRobot.Commands
 @using MartianRobot.Models
-@using global::RobotGrid.Client.Models
 @using global::RobotGrid.Client.Services
 @inject NavigationManager NavigationManager
 
@@ -93,15 +91,15 @@
                 </div>
             }
 
-            @if (!string.IsNullOrWhiteSpace(GridText))
+            @if (CurrentFrame is not null)
             {
                 <div class="card border-secondary">
-                    <div class="card-header bg-dark text-light d-flex justify-content-between align-items-center">
+                    <div class="card-header d-flex justify-content-between align-items-center">
                         <span>Scenario Output</span>
-                        <small class="text-body-secondary">`.` empty, `*` visited, `X` lost scent</small>
+                        <small class="text-body-secondary">White = empty, green = visited, arrow = current heading</small>
                     </div>
-                    <div class="card-body bg-dark text-info">
-                        <pre class="mb-0 font-monospace small">@GridText</pre>
+                    <div class="card-body">
+                        <HTMLGrid Frame="CurrentFrame" />
                     </div>
                 </div>
             }
@@ -143,12 +141,12 @@
         Instructions = "RFRFRFRF"
     };
 
-    private string GridText { get; set; } = "";
     private string? ErrorMessage { get; set; }
     private bool IsAnimating { get; set; }
     private bool _hasAppliedQueryParameters;
     private bool _hasAutoRunFromQuery;
     private bool _stopRequested;
+    private RobotGridAnimationFrame? CurrentFrame { get; set; }
 
     protected override async Task OnParametersSetAsync()
     {
@@ -240,7 +238,7 @@
     private async Task AnimateScenario()
     {
         ErrorMessage = null;
-        GridText = "";
+        CurrentFrame = null;
         IsAnimating = true;
         _stopRequested = false;
 
@@ -253,7 +251,7 @@
                     break;
                 }
 
-                GridText = frame.GridText;
+                CurrentFrame = frame;
                 await InvokeAsync(StateHasChanged);
                 await Task.Delay(600);
             }

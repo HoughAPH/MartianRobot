@@ -6,9 +6,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
-
-  <ItemGroup>
-    <None Remove="TextFile1.txt" />
-  </ItemGroup>
-
 </Project>
