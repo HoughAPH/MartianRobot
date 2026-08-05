@@ -7,17 +7,21 @@ public sealed class RobotScenarioInput : IValidatableObject
     private string _instructions = "";
 
     [Range(0, 50)]
+    [Display(Name = "Width:")]
     public int GridWidth { get; set; } = 5;
 
     [Range(0, 50)]
+    [Display(Name = "Height:")]
     public int GridHeight { get; set; } = 3;
 
     [Range(0, 50)]
+    [Display(Name = "X:")]
     public int StartX { get; set; } = 0;
 
     [Range(0, 50)]
+    [Display(Name = "Y:")]
     public int StartY { get; set; } = 0;
-
+    [Display(Name = "Heading:")]
     public Heading Heading { get; set; } = Heading.North;
 
     [Required]
@@ -35,14 +39,14 @@ public sealed class RobotScenarioInput : IValidatableObject
         {
             yield return new ValidationResult(
                 $"Start X must be within the grid width (0 to {GridWidth}).",
-                [nameof(StartX), nameof(GridWidth)]);
+                [nameof(StartX)]);
         }
 
         if (StartY > GridHeight)
         {
             yield return new ValidationResult(
                 $"Start Y must be within the grid height (0 to {GridHeight}).",
-                [nameof(StartY), nameof(GridHeight)]);
+                [nameof(StartY)]);
         }
     }
 

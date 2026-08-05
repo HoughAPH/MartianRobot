@@ -3,22 +3,22 @@
 @if (Frame is not null)
 {
     <div class="html-grid__details">
-        <div>
+      @*   <div>
             <strong>Start:</strong> @Frame.StartPosition.ToString()
             <span class="ms-2"><strong>Initial Heading:</strong> @Frame.StartHeading</span>
-        </div>
+        </div> *@
         <div>
-            <strong>Current:</strong> @Frame.CurrentPosition.ToString()
+            <strong>Current Position:</strong> @Frame.CurrentPosition.ToString()
             <span class="ms-2"><strong>Heading:</strong> @Frame.CurrentHeading</span>
             @if (Frame.IsLost)
             {
                 <span class="badge text-bg-danger ms-2">Lost</span>
             }
         </div>
-        <div>
+        @* <div>
             <strong>Instructions:</strong>
             <span class="html-grid__instructions">@Frame.Instructions</span>
-        </div>
+        </div> *@
     </div>
 
     <div class="html-grid__wrapper">

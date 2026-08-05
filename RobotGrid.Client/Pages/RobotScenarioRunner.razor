@@ -8,56 +8,80 @@
 <div class="container py-4">
     <div class="card border-secondary">
         <div class="card-header">
-            <h5 class="mb-0">Specify your own grid and robot instructions</h5>
+            <h9 class="mb-0">Specify grid size and robot instructions, or use the Route Builder to generate instructions</h9>
         </div>
 
         <div class="card-body">
             <EditForm Model="Model" OnValidSubmit="AnimateScenario">
                 <DataAnnotationsValidator />
+            
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-2 fw-bold text-nowrap">Grid Size</div>
 
-                <div class="vstack gap-2 mb-3">
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        <span class="fw-bold me-2">Grid:</span>
+                        <div class="col-2">
+                            <label for="grid-width" class="col-form-label col-form-label-sm">Width:</label>
+                        </div>
 
-                        <label class="fw-bold mb-0" for="grid-width">Width</label>
-                        <InputNumber id="grid-width"
-                                     class="form-control form-control-sm w-auto"
-                                     style="width: 5rem;"
-                                     @bind-Value="Model.GridWidth" />
+                        <div class="col-2">
+                            <InputNumber id="grid-width"
+                                         class="form-control form-control-sm w-100"
+                                         @bind-Value="Model.GridWidth" />
+                        </div>
 
-                        <label class="fw-bold mb-0 ms-2" for="grid-height">Height</label>
-                        <InputNumber id="grid-height"
-                                     class="form-control form-control-sm w-auto"
-                                     style="width: 5rem;"
-                                     @bind-Value="Model.GridHeight" />
+                        <div class="col-2">
+                            <label for="grid-height" class="col-form-label col-form-label-sm">Height:</label>
+                        </div>
+
+                        <div class="col-2">
+                            <InputNumber id="grid-height"
+                                         class="form-control form-control-sm w-100"
+                                         @bind-Value="Model.GridHeight" />
+                        </div>
+                </div>
+
+                <div class="row g-2 align-items-center mb-2">
+                    <div class="col-2 fw-bold text-nowrap">Starting</div>
+
+                    <div class="col-2">
+                        <label for="start-x" class="col-form-label col-form-label-sm">X:</label>
                     </div>
 
-                    <div class="d-flex flex-wrap align-items-center gap-2">
-                        <span class="fw-bold me-2">Start:</span>
-
-                        <label class="fw-bold mb-0" for="start-x">X</label>
+                    <div class="col-2">
                         <InputNumber id="start-x"
-                                     class="form-control form-control-sm w-auto"
-                                     style="width: 4.5rem;"
+                                     class="form-control form-control-sm w-100"
                                      @bind-Value="Model.StartX" />
-
-                        <label class="fw-bold mb-0 ms-2" for="start-y">Y</label>
-                        <InputNumber id="start-y"
-                                     class="form-control form-control-sm w-auto"
-                                     style="width: 4.5rem;"
-                                     @bind-Value="Model.StartY" />
-
-                        <label class="fw-bold mb-0 ms-2" for="heading">Heading</label>
-                        <InputSelect id="heading"
-                                     class="form-select form-select-sm w-auto"
-                                     style="width: 7rem;"
-                                     @bind-Value="Model.Heading">
-                            @foreach (var heading in Enum.GetValues<Heading>())
-                            {
-                                <option value="@heading">@heading</option>
-                            }
-                        </InputSelect>
                     </div>
+
+                    <div class="col-2">
+                        <label for="start-y" class="col-form-label col-form-label-sm">Y:</label>
+                    </div>
+
+                    <div class="col-2">
+                        <InputNumber id="start-y"
+                                     class="form-control form-control-sm w-100"
+                                     @bind-Value="Model.StartY" />
+                    </div>
+                
+                        <!-- Row 3: Heading -->
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-2 fw-bold text-nowrap">Heading</div>
+
+                            <div class="col-3">
+                                <InputSelect id="heading"
+                                             class="form-select form-select-sm w-100"
+                                             @bind-Value="Model.Heading">
+                                    @foreach (var heading in Enum.GetValues<Heading>())
+                                    {
+                                        <option value="@heading">@heading</option>
+                                    }
+                                </InputSelect>
+                            </div>
+
+                            @* <div class="col-1"></div>
+                            <div class="col-2"></div>
+                            <div class="col-2"></div> *@
+                        </div>
+
 
                     <div class="d-flex flex-wrap align-items-center gap-2">
                         <label class="fw-bold mb-0" for="instructions">Instructions:</label>
@@ -84,26 +108,27 @@
                 </div>
             </EditForm>
 
-            @if (!string.IsNullOrWhiteSpace(ErrorMessage))
-            {
-                <div class="alert alert-danger" role="alert">
-                    @ErrorMessage
-                </div>
-            }
-
-            @if (CurrentFrame is not null)
-            {
-                <div class="card border-secondary">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <span>Scenario Output</span>
-                        <small class="text-body-secondary">White = empty, green = visited, arrow = current heading</small>
-                    </div>
-                    <div class="card-body">
-                        <HTMLGrid Frame="CurrentFrame" />
-                    </div>
-                </div>
-            }
+            
         </div>
+        @if (!string.IsNullOrWhiteSpace(ErrorMessage))
+        {
+            <div class="alert alert-danger" role="alert">
+                @ErrorMessage
+            </div>
+        }
+
+        @if (CurrentFrame is not null)
+        {
+            <div class="card border-secondary">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Scenario Output</span>
+                    <small class="text-body-secondary">White = empty, green = visited, arrow = current heading</small>
+                </div>
+                <div class="card-body">
+                    <HTMLGrid Frame="CurrentFrame" />
+                </div>
+            </div>
+        }
     </div>
 </div>
 
@@ -159,7 +184,7 @@
         }
     }
 
-    
+
     private void ApplyOptionalQueryParameters()
     {
         if (_hasAppliedQueryParameters)

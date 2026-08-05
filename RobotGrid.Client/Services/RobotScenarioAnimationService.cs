@@ -7,7 +7,7 @@ public sealed class RobotScenarioAnimationService
 {
     private readonly RobotScenarioFrameGenerator _frameGenerator = new();
 
-    public static List<RobotScenarioViewModel> CreateDefaultScenarios()
+    public static List<RobotScenarioViewModel> SetDefaultScenarios()
     {
         return
         [

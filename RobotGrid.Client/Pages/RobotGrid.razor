@@ -46,7 +46,7 @@
 </div>
 
 @code {
-    [Parameter] public string Caption { get; set; } = "Martian Robot Scenarios";
+    [Parameter] public string Caption { get; set; } = "Martian Robot Scenario Examples";
 
     private readonly Grid _grid = new(5, 3);
     private readonly RobotScenarioAnimationService _scenarioAnimationService = new();
@@ -56,8 +56,8 @@
 
     protected override void OnInitialized()
     {
-        Scenarios.AddRange(RobotScenarioAnimationService.CreateDefaultScenarios());
-        _scenarioAnimationService.ResetScenarios(_grid, Scenarios);
+        Scenarios.AddRange(RobotScenarioAnimationService.SetDefaultScenarios());
+        // _scenarioAnimationService.ResetScenarios(_grid, Scenarios);
     }
 
     private async Task AnimateScenarios()

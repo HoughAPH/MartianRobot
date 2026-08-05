@@ -6,9 +6,9 @@ namespace MartianRobot.Services;
 public class RobotInstructionExecutor
 {
     private static readonly IReadOnlyList<IRobotInstructionCommand> AvailableCommands = LoadCommands();
-
     private readonly Grid _grid;
     private readonly IReadOnlyDictionary<char, IRobotInstructionCommand> _commands;
+    public string AllowedCommandsText => string.Join(", ", _commands.Keys.Order());
 
     public RobotInstructionExecutor(Grid grid)
         : this(grid, AvailableCommands)
@@ -24,7 +24,7 @@ public class RobotInstructionExecutor
         _commands = commands.ToDictionary(command => command.Symbol);
     }
 
-    public string AllowedCommandsText => string.Join(", ", _commands.Keys.Order());
+
 
     public void Execute(Robot robot, string instructions)
     {
@@ -104,12 +104,11 @@ public class RobotInstructionExecutor
 
     private static void ValidateUniqueSymbols(IEnumerable<IRobotInstructionCommand> commands)
     {
-        char[] duplicateSymbols = commands
+        char[] duplicateSymbols = [.. commands
             .GroupBy(command => char.ToUpperInvariant(command.Symbol))
             .Where(group => group.Count() > 1)
             .Select(group => group.Key)
-            .Order()
-            .ToArray();
+            .Order()];
 
         if (duplicateSymbols.Length > 0)
         {
