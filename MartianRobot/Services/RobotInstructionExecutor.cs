@@ -63,11 +63,6 @@ public class RobotInstructionExecutor
         return _commands.TryGetValue(char.ToUpperInvariant(commandSymbol), out command);
     }
 
-    //public bool TryExecuteCommand(Robot robot, char commandSymbol)
-    //{
-    //    return TryExecuteCommand(robot, commandSymbol, out _);
-    //}
-
     public bool TryExecuteCommand(
         Robot robot,
         char commandSymbol,

@@ -79,7 +79,7 @@ public sealed class RobotScenarioFrameGenerator
             }
 
             char commandSymbol = normalizedInstructions[i];
-
+            //currenRobot gets changed becuase it is mutable and passed by reference to the Execute method
             if (!executor.TryExecuteCommand(currentRobot, commandSymbol, out IRobotInstructionCommand? command) || command is null)
             {
                 throw new ArgumentException(
@@ -134,11 +134,7 @@ public sealed class RobotScenarioFrameGenerator
     {
         int x = robot.Position.X;
         int y = robot.Position.Y;
-
-        if (x < 0 || x > grid.Width || y < 0 || y > grid.Height)
-        {
-            return;
-        }
+        if (!grid.IsWithinBounds(x, y)) return;
 
         visitedPositions.Add((x, y));
     }
