@@ -3,10 +3,6 @@
 @if (Frame is not null)
 {
     <div class="html-grid__details">
-      @*   <div>
-            <strong>Start:</strong> @Frame.StartPosition.ToString()
-            <span class="ms-2"><strong>Initial Heading:</strong> @Frame.StartHeading</span>
-        </div> *@
         <div>
             <strong>Current Position:</strong> @Frame.CurrentPosition.ToString()
             <span class="ms-2"><strong>Heading:</strong> @Frame.CurrentHeading</span>
@@ -74,8 +70,9 @@
 
     private int GetStepNumber(int x, int y)
     {
-        var index = Frame?.VisitedPositions.ToList().FindIndex(p => p.X == x && p.Y == y) ?? -1;
-        return index >= 0 ? index + 1 : 0;
+        return Frame?.VisitedStepNumbers.TryGetValue(new Position(x, y), out int stepNumber) == true
+            ? stepNumber
+            : 0;
     }
 
     private string GetCellClass(Position position)

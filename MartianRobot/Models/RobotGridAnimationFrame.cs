@@ -10,4 +10,5 @@ public sealed record RobotGridAnimationFrame(
     Heading CurrentHeading,
     bool IsLost,
     IReadOnlyCollection<Position> VisitedPositions,
+    IReadOnlyDictionary<Position, int> VisitedStepNumbers,
     IReadOnlyCollection<Position> LostPositions);

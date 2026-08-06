@@ -170,10 +170,10 @@
             return;
         }
 
-        if (!RouteCells.Contains(cell))
-        {
+        // if (!RouteCells.Contains(cell))
+        // {
             RouteCells.Add(cell);
-        }
+        // }
 
     }
 
@@ -232,8 +232,7 @@
 
     private int GetStepNumber(int x, int y)
     {
-        var index = RouteCells.IndexOf((x, y));
-        return index >= 0 ? index + 1 : 0;
+        return RouteCells.LastIndexOf((x, y)) + 1;
     }
 
     private string GetCellButtonClass(int x, int y)
@@ -254,4 +253,4 @@
     }
 
     
-}
+}}

@@ -251,7 +251,7 @@
         Model.StartX = 25;
         Model.StartY = 25;
         Model.Heading = Heading.North;
-        Model.Instructions = string.Concat(Enumerable.Repeat("FFRFFRFFRFFR", 8));
+        Model.Instructions = string.Concat(Enumerable.Repeat("FFRFFFFLFFRFFL", 8));
         ErrorMessage = null;
     }
 
@@ -278,7 +278,7 @@
 
                 CurrentFrame = frame;
                 await InvokeAsync(StateHasChanged);
-                await Task.Delay(600);
+                await Task.Delay(500);
             }
         }
         catch (ArgumentException ex)
