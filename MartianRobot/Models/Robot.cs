@@ -2,8 +2,27 @@ namespace MartianRobot.Models;
 
 public class Robot(int startX, int startY, Heading initialHeading = Heading.North)
 {
+    private Heading _heading = initialHeading;
+
     public Position Position { get; set; } = new Position(startX, startY);
-    public Heading Heading { get; set; } = initialHeading;
+
+    public Heading Heading
+    {
+        get => _heading;
+        set
+        {
+            if (!Enum.IsDefined(value))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(value),
+                    value,
+                    "The heading must be a defined Heading value.");
+            }
+
+            _heading = value;
+        }
+    }
+
     public bool IsLost { get; set; } = false;
 
     public override string ToString()

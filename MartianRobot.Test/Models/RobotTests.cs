@@ -38,22 +38,19 @@ public class RobotTests
     }
 
     /// <summary>
-    /// Verifies that <see cref="Robot.ToString"/> throws <see cref="ArgumentOutOfRangeException"/>
-    /// when the robot heading is outside the defined <see cref="Heading"/> values.
+    /// Verifies that setting an invalid value for <see cref="Robot.Heading"/> throws <see cref="ArgumentOutOfRangeException"/>.
     /// </summary>
     [Fact]
-    public void ToString_InvalidHeading_ThrowsArgumentOutOfRangeException()
+    public void Heading_InvalidValue_ThrowsArgumentOutOfRangeException()
     {
         // Arrange
-        Robot robot = new(0, 0)
-        {
-            Heading = (Heading)(-1)
-        };
+        Robot robot = new(0, 0);
 
         // Act
-        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(() => robot.ToString());
+        ArgumentOutOfRangeException exception = Assert.Throws<ArgumentOutOfRangeException>(
+            () => robot.Heading = (Heading)(-1));
 
         // Assert
-        Assert.Equal("heading", exception.ParamName);
+        Assert.Equal("value", exception.ParamName);
     }
 }
