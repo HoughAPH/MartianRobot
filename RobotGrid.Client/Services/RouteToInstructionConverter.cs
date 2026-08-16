@@ -1,5 +1,6 @@
 using MartianRobot.Commands;
 using MartianRobot.Models;
+using RobotGrid.Client.Models;
 
 namespace RobotGrid.Client.Services;
 
@@ -214,9 +215,3 @@ public static class RouteToInstructionConverter
     }
 }
 
-public sealed record RouteConversionResult(
-    int StartX,
-    int StartY,
-    Heading StartHeading,
-    Heading CurrentHeading,
-    string Instructions);
