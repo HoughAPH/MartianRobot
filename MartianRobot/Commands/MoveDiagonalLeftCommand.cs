@@ -35,4 +35,16 @@ public class MoveDiagonalLeftCommand : IRobotInstructionCommand
 
         robot.Position = new Position(newX, newY);
     }
+
+    public static bool MatchCommand(Heading heading, int dx, int dy)
+    {
+        return (dx, dy, heading) switch
+        {
+            (-1, 1, Heading.North) => true,
+            (1, 1, Heading.East) => true,
+            (1, -1, Heading.South) => true,
+            (-1, -1, Heading.West) => true,
+            _ => false
+        };
+    }
 }
