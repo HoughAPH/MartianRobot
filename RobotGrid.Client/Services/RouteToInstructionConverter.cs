@@ -74,14 +74,11 @@ public static class RouteToInstructionConverter
                 {
                     instructions.Add('L');
                     instructions.Add('Q');
-                    currentHeading = currentHeading switch
-                    {
-                        Heading.North => Heading.West,
-                        Heading.East => Heading.North,
-                        Heading.South => Heading.East,
-                        Heading.West => Heading.South,
-                        _ => throw new NotImplementedException(),
-                    };
+
+                    int currentIndex = (int)currentHeading;//ToIndex(currentHeading.Value);
+                    int targetIndex = ((currentIndex - 1) + 4) % 4;
+                    currentHeading = (Heading)targetIndex;
+
                     continue;
                 }
 
@@ -90,14 +87,10 @@ public static class RouteToInstructionConverter
                     instructions.Add('R');
                     instructions.Add('P');
 
-                    currentHeading = currentHeading switch
-                    {
-                        Heading.North => Heading.East,
-                        Heading.East => Heading.South,
-                        Heading.South => Heading.West,
-                        Heading.West => Heading.North,
-                        _ => throw new NotImplementedException(),
-                    };
+                    int currentIndex = (int)currentHeading;// ToIndex(currentHeading.Value);
+                    int targetIndex = (currentIndex + 1) % 4;
+                    currentHeading = (Heading)targetIndex;
+
                     continue;
                 }
             }
@@ -122,8 +115,8 @@ public static class RouteToInstructionConverter
     //This method add implied turn commands to the instructions list based on the current and target headings.
     private static void AppendTurnCommands(List<char> instructions, Heading current, Heading target)
     {
-        int currentIndex = ToIndex(current);
-        int targetIndex = ToIndex(target);
+        int currentIndex = (int)current;
+        int targetIndex = (int)target;
         int delta = (targetIndex - currentIndex + 4) % 4;  //Cycles clockwise or anti clockwise through N, E, S, W
 
         switch (delta)
@@ -145,14 +138,16 @@ public static class RouteToInstructionConverter
         }
     }
 
-    private static int ToIndex(Heading heading) => heading switch
-    {
-        Heading.North => 0,
-        Heading.East => 1,
-        Heading.South => 2,
-        Heading.West => 3,
-        _ => throw new ArgumentOutOfRangeException(nameof(heading))
-    };
+
+
+    //private static int ToIndex(Heading heading) => heading switch
+    //{
+    //    Heading.North => 0,
+    //    Heading.East => 1,
+    //    Heading.South => 2,
+    //    Heading.West => 3,
+    //    _ => throw new ArgumentOutOfRangeException(nameof(heading))
+    //};
 
     private static (int Dx, int Dy) GetStepDelta((int X, int Y) from, (int X, int Y) to)
     {

@@ -37,7 +37,7 @@
         <button type="button" class="btn btn-sm btn-outline-danger" @onclick="ClearRoute" disabled="@(RouteCells.Count == 0)">
             Clear
         </button>
-        
+
     </div>
 
     <p class="text-muted small mb-3">
@@ -101,12 +101,12 @@
                 <strong>Instruction String:</strong>
                 <span class="font-monospace ms-1">@(Result?.Instructions ?? string.Empty)</span>
             </div>
-            
+
             <div class="d-flex flex-wrap gap-2 mb-2">
-                <button type="button" 
-                    class="btn btn-sm btn-outline-primary" 
-                    @onclick="Recalculate" 
-                    disabled="@(RouteCells.Count < 2)">
+                <button type="button"
+                        class="btn btn-sm btn-outline-primary"
+                        @onclick="Recalculate"
+                        disabled="@(RouteCells.Count < 2)">
                     Calculate Instructions
                 </button>
                 <button type="button"
@@ -173,7 +173,7 @@
 
         // if (!RouteCells.Contains(cell))
         // {
-            RouteCells.Add(cell);
+        RouteCells.Add(cell);
         // }
 
     }
@@ -252,6 +252,4 @@
 
         return "btn btn-sm btn-outline-secondary";
     }
-
-    
-}}
+}

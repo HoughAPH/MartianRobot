@@ -9,7 +9,7 @@ A small, extensible `.NET 9` console application that simulates robots moving on
 Supported commands:
 
 - `F` — move forward one grid point
-- `L` — turn left
+- `L` — turn leftMio
 - `R` — turn right
 
 If a robot moves off the grid, it becomes `LOST`. Its last valid position is marked as scented so that future robots can ignore the same fatal move.

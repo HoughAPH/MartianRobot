@@ -1,20 +1,23 @@
 # MartianRobot - UI branch
 
-This branch is my follow-on version of the original `MartianRobot` assessment.
+This branch is my follow-on version of the original `MartianRobot` challenge and solution project.
 
-The original assessment is still the main reference point, but this branch keeps the robot logic and adds a web UI so the scenarios can be run visually in a browser.
+The original project is still the main reference point, but this branch extends the robot logic and adds a web UI so the scenarios can be created and run visually in a browser.
 
 ## What this branch is
 
-This branch is an extension of the original assessment submission.
+This branch is an extension of the original console app.
 
-The goal of this branch is to keep the original Martian Robot rules in the core project and expose them through UI projects.
+The goal of this branch is to keep the original Martian Robot rules in the core project and expose them through UI projects. The console app was changed to build as a library project, and a new Blazor WebAssembly UI was added to run the robot scenarios in a browser.
 
-## Where to look for the original assessment
+## Where to look for the original console application
 
-If you want to review the original assessment as it was first implemented, look at the `master` branch.
+If you want to review the original console app as it was first implemented, look at the `master` branch.
 
-That branch shows the original assessment version directly.
+## Important demonstration of the Command Pattern.
+The original console app was implemented using the Command Pattern. 
+Theorerically any command can be implemented as a class that implements the `IRobotCommand` interface. The `RobotCommandFactory` class is responsible for creating the appropriate command object based on the input character. The `Robot` class executes the commands by calling the `Execute` method on each command object.
+However the 'RouteToInstructionConverter' class will have to be changed for new commands as is not possible to include it in the Command itself yet.
 
 ## What changed in this branch
 
@@ -36,7 +39,7 @@ In other words:
 
 ## Why it was changed this way
 
-The robot logic is kept separate from the UI.
+The robot movement command logic is kept separate from the UI.
 
 That makes the solution easier to understand because:
 
@@ -51,19 +54,8 @@ That makes the solution easier to understand because:
 
 If you want to run the UI version, start the web host project rather than `MartianRobot` directly.
 
-## Summary
-
-The simplest way to read this repository is:
-
-- `master` = original assessment solution
-- this branch = the same core logic, extended with a web UI
-
-## UI rendering changes
-
-The animation no longer uses a text `GridString` as the visual output.
-
-Instead:
-
+## UI rendering techniques
+- The animation is displayed as a sequence of frames, one frame per robot instruction.  
 - animation frames are built as `RobotGridAnimationFrame` data
 - the grid is rendered as an HTML table
 - a reusable `HTMLGrid` component is used to display that frame data
@@ -136,8 +128,9 @@ Because heading is inferred from movement between cells, the route must follow a
 - diagonal steps are allowed
 - the first move must be orthogonal
 - diagonal moves must be forward-left or forward-right relative to the current heading
+- When a diagonal move is backwards, the instruction builder will add the appropriate turn command before adding a valid diagonal move. For example, if the robot is facing north and the next step is to the southwest, the instruction builder will add a left turn command before adding the diagonal-left command.
 
-If a route breaks those rules, the page shows a validation error instead of generating instructions.
+If a movement command breaks those rules, the page shows a validation error and the step can be reversed.
 
 Once instructions have been generated, the route can be sent directly to `RobotScenarioRunner` and animated there.
 
