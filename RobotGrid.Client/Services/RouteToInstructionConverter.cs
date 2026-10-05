@@ -1,3 +1,4 @@
+using System.Text;
 using MartianRobot.Commands;
 using MartianRobot.Models;
 using RobotGrid.Client.Models;
@@ -6,6 +7,8 @@ namespace RobotGrid.Client.Services;
 
 public static class RouteToInstructionConverter
 {
+    private const int HeadingCount = 4;
+
     public static RouteConversionResult Convert(IReadOnlyList<(int X, int Y)> routeCells)
     {
         ArgumentNullException.ThrowIfNull(routeCells);
@@ -15,139 +18,103 @@ public static class RouteToInstructionConverter
             throw new ArgumentException("At least two route cells are required.");
         }
 
-        (int X, int Y) = routeCells[0];
-        Heading? startHeading = null;
-        Heading? currentHeading = null;
-        List<char> instructions = [];
+        (int startX, int startY) = routeCells[0];
 
-        for (int i = 1; i < routeCells.Count; i++)
-        {
-            (int Dx, int Dy) = GetStepDelta(routeCells[i - 1], routeCells[i]);
-            bool isOrthogonal = IsOrthogonalStep(Dx, Dy);
-            bool isDiagonal = !isOrthogonal && IsDiagonalStep(Dx, Dy);
-
-            if (i == 1 && !isOrthogonal)
-            {
-                throw new ArgumentException("The first move must be orthogonal.");
-            }
-
-            if (isOrthogonal)
-            {
-                Heading targetHeading = GetHeadingFromOrthogonalStep(Dx, Dy);
-
-                if (i == 1)
-                {
-                    startHeading = targetHeading;
-                    currentHeading = targetHeading;
-                    instructions.Add('F');
-                    continue;
-                }
-
-                AppendTurnCommands(instructions, currentHeading!.Value, targetHeading);
-                instructions.Add('F');
-                currentHeading = targetHeading;
-                continue;
-            }
-
-            if (isDiagonal)
-            {
-                if (currentHeading is null)
-                {
-                    throw new ArgumentException("The first move must be orthogonal.");
-                }
-
-                //if (MatchesDiagonalLeft(currentHeading.Value, step.Dx, step.Dy))
-                if (MoveDiagonalLeftCommand.MatchCommand(currentHeading.Value, Dx, Dy))
-                {
-                    instructions.Add('Q');
-                    continue;
-                }
-
-                //  if (MatchesDiagonalRight(currentHeading.Value, step.Dx, step.Dy))
-                if (MoveDiagonalRightCommand.MatchCommand(currentHeading.Value, Dx, Dy))
-                {
-                    instructions.Add('P');
-                    continue;
-                }
-
-                if (MatchesDiagonalLeftRear(currentHeading.Value, Dx, Dy))
-                {
-                    instructions.Add('L');
-                    instructions.Add('Q');
-
-                    int currentIndex = (int)currentHeading;//ToIndex(currentHeading.Value);
-                    int targetIndex = ((currentIndex - 1) + 4) % 4;
-                    currentHeading = (Heading)targetIndex;
-
-                    continue;
-                }
-
-                if (MatchesDiagonalRightRear(currentHeading.Value, Dx, Dy))
-                {
-                    instructions.Add('R');
-                    instructions.Add('P');
-
-                    int currentIndex = (int)currentHeading;// ToIndex(currentHeading.Value);
-                    int targetIndex = (currentIndex + 1) % 4;
-                    currentHeading = (Heading)targetIndex;
-
-                    continue;
-                }
-            }
-
-            throw new ArgumentException("Each move must go to a neighboring cell.");
-        }
-        if (startHeading is null || currentHeading is null)
+        // The first move defines the start heading, so it must be orthogonal.
+        (int firstDx, int firstDy) = GetStepDelta(routeCells[0], routeCells[1]);
+        if (!IsOrthogonalStep(firstDx, firstDy))
         {
             throw new ArgumentException("The first move must be orthogonal.");
         }
 
+        Heading startHeading = GetHeadingFromOrthogonalStep(firstDx, firstDy);
+        Heading currentHeading = startHeading;
+
+        // Each step produces at most three instructions ("RRF").
+        StringBuilder instructions = new((routeCells.Count - 1) * 3);
+        instructions.Append('F');
+
+        for (int i = 2; i < routeCells.Count; i++)
+        {
+            (int dx, int dy) = GetStepDelta(routeCells[i - 1], routeCells[i]);
+
+            if (IsOrthogonalStep(dx, dy))
+            {
+                Heading targetHeading = GetHeadingFromOrthogonalStep(dx, dy);
+                AppendTurnCommands(instructions, currentHeading, targetHeading);
+                instructions.Append('F');
+                currentHeading = targetHeading;
+                continue;
+            }
+
+            // GetStepDelta guarantees a neighbouring cell, so a non-orthogonal step is diagonal.
+            if (MoveDiagonalLeftCommand.MatchCommand(currentHeading, dx, dy))
+            {
+                instructions.Append('Q');
+                continue;
+            }
+
+            if (MoveDiagonalRightCommand.MatchCommand(currentHeading, dx, dy))
+            {
+                instructions.Append('P');
+                continue;
+            }
+
+            // Rear diagonals: turn first so the move becomes a forward diagonal.
+            Heading leftHeading = Rotate(currentHeading, -1);
+            if (MoveDiagonalLeftCommand.MatchCommand(leftHeading, dx, dy))
+            {
+                instructions.Append("LQ");
+                currentHeading = leftHeading;
+                continue;
+            }
+
+            Heading rightHeading = Rotate(currentHeading, 1);
+            if (MoveDiagonalRightCommand.MatchCommand(rightHeading, dx, dy))
+            {
+                instructions.Append("RP");
+                currentHeading = rightHeading;
+                continue;
+            }
+
+            throw new ArgumentException("Each move must go to a neighboring cell.");
+        }
+
         return new RouteConversionResult(
-            StartX: X,
-            StartY: Y,
-            //StartHeading: startHeading,
-            StartHeading: startHeading.Value,
-            CurrentHeading: currentHeading.Value,
-            Instructions: new string([.. instructions]));
+            StartX: startX,
+            StartY: startY,
+            StartHeading: startHeading,
+            CurrentHeading: currentHeading,
+            Instructions: instructions.ToString());
     }
 
-
-    //This method add implied turn commands to the instructions list based on the current and target headings.
-    private static void AppendTurnCommands(List<char> instructions, Heading current, Heading target)
+    //This method adds implied turn commands to the instructions based on the current and target headings.
+    private static void AppendTurnCommands(StringBuilder instructions, Heading current, Heading target)
     {
-        int currentIndex = (int)current;
-        int targetIndex = (int)target;
-        int delta = (targetIndex - currentIndex + 4) % 4;  //Cycles clockwise or anti clockwise through N, E, S, W
+        int delta = ((int)target - (int)current + HeadingCount) % HeadingCount;  //Cycles clockwise through N, E, S, W
 
         switch (delta)
         {
             case 0:
                 return;
             case 1:
-                instructions.Add('R');
+                instructions.Append('R');
                 return;
             case 2:
-                instructions.Add('R');
-                instructions.Add('R');
+                instructions.Append("RR");
                 return;
             case 3:
-                instructions.Add('L');
+                instructions.Append('L');
                 return;
             default:
                 throw new InvalidOperationException("Invalid heading delta.");
         }
     }
 
-
-
-    //private static int ToIndex(Heading heading) => heading switch
-    //{
-    //    Heading.North => 0,
-    //    Heading.East => 1,
-    //    Heading.South => 2,
-    //    Heading.West => 3,
-    //    _ => throw new ArgumentOutOfRangeException(nameof(heading))
-    //};
+    private static Heading Rotate(Heading heading, int quarterTurns)
+    {
+        return (Heading)(((int)heading + quarterTurns + HeadingCount) % HeadingCount);
+    }
 
     private static (int Dx, int Dy) GetStepDelta((int X, int Y) from, (int X, int Y) to)
     {
@@ -167,11 +134,6 @@ public static class RouteToInstructionConverter
         return Math.Abs(dx) + Math.Abs(dy) == 1;
     }
 
-    private static bool IsDiagonalStep(int dx, int dy)
-    {
-        return Math.Abs(dx) == 1 && Math.Abs(dy) == 1;
-    }
-
     private static Heading GetHeadingFromOrthogonalStep(int dx, int dy)
     {
         return (dx, dy) switch
@@ -183,30 +145,4 @@ public static class RouteToInstructionConverter
             _ => throw new ArgumentException("Only orthogonal steps can define heading.")
         };
     }
-
-    private static bool MatchesDiagonalLeftRear(Heading heading, int dx, int dy)
-    {
-        return heading switch
-        {
-            Heading.North => (dx, dy) == (-1, -1),
-            Heading.East => (dx, dy) == (-1, 1),
-            Heading.South => (dx, dy) == (1, 1),
-            Heading.West => (dx, dy) == (1, -1),
-            _ => false
-        };
-    }
-
-
-    private static bool MatchesDiagonalRightRear(Heading heading, int dx, int dy)
-    {
-        return heading switch
-        {
-            Heading.North => (dx, dy) == (1, -1),
-            Heading.East => (dx, dy) == (-1, -1),
-            Heading.South => (dx, dy) == (-1, 1),
-            Heading.West => (dx, dy) == (1, 1),
-            _ => false
-        };
-    }
 }
-
